@@ -1,2 +1,2 @@
 # SnippetBox
-my first golang
+my first golang project
