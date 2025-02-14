@@ -1,0 +1,16 @@
+<!-- 使用.代表当前传入的结构体 可以直接访问结构体的字段 -->
+{{define "title"}}Snippet #{{.Snippet.ID}}{{end}}
+
+{{define "main"}}
+    <div class="snippet">
+        <div class="metadata">
+            <strong>{{.Snippet.Title}}</strong>
+            <span>#{{.Snippet.ID}}</span>
+        </div>
+        <pre><code>{{.Snippet.Content}}</code></pre>
+        <div class="metadata">
+            <time datetime="">{{.Snippet.Created}}</time>
+            <time datetime="">{{.Snippet.Expires}}</time>
+        </div>
+    </div>
+{{end}}
