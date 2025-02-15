@@ -90,4 +90,3 @@ func (app *Application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 	// curl -iL -X POST http://localhost:3939/snippet/create
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view?id=%d", id), http.StatusSeeOther)
 }
-	
