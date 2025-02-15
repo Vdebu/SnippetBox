@@ -22,7 +22,10 @@
     <main>
         {{template "main" .}}
     </main>
-    <footer>Powered by <a href="https://golang.org/">Go</a></footer>
+    <footer>
+        <!-- 所有模板都可以正常读取到传入的结构体 -->
+        Powered by <a href="https://golang.org/">Go</a> in {{.CurrentYear}}
+    </footer>
 </body>
 </html>
 

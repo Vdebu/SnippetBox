@@ -3,15 +3,29 @@ package main
 import (
 	"html/template"
 	"path/filepath"
+	"time"
 
 	"SnippetBox.mikudayo.net/internal/models"
 )
 
 type TemplateData struct {
-	Snippet  *models.Snippet
-	Snippets []*models.Snippet
+	CurrentYear int
+	Snippet     *models.Snippet
+	Snippets    []*models.Snippet
 }
 
+// 自定义时间格式化函数
+func hunmanDate(t time.Time) string {
+	// 时间的初始化必须根据go的参考时间 不能随意更改
+	return t.Format("2006-01-02 15:04:05")
+}
+
+// 创建template.FuncMap用于存储自定义函数
+var functions = template.FuncMap{
+	"humanDate": hunmanDate,
+}
+
+// 将网页模板渲染并存储到内存中 提高运行效率
 func newTemplateCache() (map[string]*template.Template, error) {
 	// 初始化容器用于存储
 	cache := map[string]*template.Template{}
@@ -25,18 +39,14 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		// 取出文件的名字用作key
 		// home.tmpl.html
 		name := filepath.Base(page)
-		// 将路径导入到预先准备好的模板包中
-		// files := []string{
-		// 	"D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/ui/html/base.tmpl.html",
-		// 	"D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/ui/html/partials/nav.tmpl.html",
-		// 	page,
-		// }
 		// 先解析基础的模板
-		ts, err := template.ParseFiles("D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/ui/html/base.tmpl.html")
+		// 为了应用函数到模板里 需要使用new方法创建一个新的template.Template对象
+		// 函数的应用必须与模板解析之前
+		ts, err := template.New(name).Funcs(functions).ParseFiles("D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/ui/html/base.tmpl.html")
 		if err != nil {
 			return nil, err
 		}
-		// 调用ts.ParseGlob()解析其他的基板
+		// 调用ts.ParseGlob()解析其他的基板(nav.tmpl.html)
 		ts, err = ts.ParseGlob("D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/ui/html/partials/*.tmpl.html")
 		if err != nil {
 			return nil, err

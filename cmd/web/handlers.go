@@ -22,10 +22,10 @@ func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.serverError(w, err)
 	}
-	data := &TemplateData{
-		Snippets: snippets,
-	}
-	// 使用render()进行HTML渲染
+	// 先初始化默认数据再初始化查询得到的数据
+	data := app.newTemplateData(r)
+	data.Snippets = snippets
+	// 使用render()进行home.tmpl.html渲染
 	app.render(w, http.StatusOK, "home.tmpl.html", data)
 	// w.Write([]byte("mikudayoooo"))
 }
@@ -51,9 +51,8 @@ func (app *Application) snippetView(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	data := &TemplateData{
-		Snippet: snippet,
-	}
+	data := app.newTemplateData(r)
+	data.Snippet = snippet
 	app.render(w, http.StatusOK, "view.tmpl.html", data)
 	// 将搜索到的内容直接输出到响应体
 	// fmt.Fprintf(w, "Display a specific miku %v...", snippet)

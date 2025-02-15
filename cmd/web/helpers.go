@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"time"
 )
 
 // 将函数输出错误信息的权限大部分移交给helper(app.errlog,)
@@ -16,7 +18,7 @@ func (app *Application) serverError(w http.ResponseWriter, err error) {
 	// ->ERROR   2025/02/12 13:56:19 handlers.go:36
 	app.errlog.Output(2, trace)
 
-	// 输出内部服务器错误的信息 statusText会根据传入的代码自动生成可读的错误信息
+	// 输出内部服务器错误的信息 statusText会根据传入的代码自动生成可读的错误信息 s
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
@@ -42,12 +44,25 @@ func (app *Application) render(w http.ResponseWriter, status int, page string, d
 		app.serverError(w, err)
 		return
 	}
-	// 向html头部写入提供的状态码
-	w.WriteHeader(status)
-	// 获取模板成功向组合中写入数据
-	err := ts.ExecuteTemplate(w, "base", data)
+	// 创建一个字节类型的缓冲
+	buf := new(bytes.Buffer)
+	// 将获取到的模板写入缓冲查看是否成功
+	err := ts.ExecuteTemplate(buf, "base", data)
 	if err != nil {
 		app.serverError(w, err)
 		return
+	}
+	// 向缓冲写入成功没有报错
+
+	// 向html头部写入提供的状态码
+	w.WriteHeader(status)
+	// 向响应体写入数据
+	buf.WriteTo(w)
+}
+
+func (app *Application) newTemplateData(r *http.Request) *TemplateData {
+	return &TemplateData{
+		// 获取当前的年份
+		CurrentYear: time.Now().Year(),
 	}
 }

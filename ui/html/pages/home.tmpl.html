@@ -5,15 +5,15 @@
     {{if .Snippets}}
         <table>
             <tr>
-                <th>Title</th>
-                <th>Created</th>
+                <th>标题</th>
+                <th>创建时间</th>
                 <th>ID</th>
             </tr>
             <!-- 遍历最新的10条内容输出 -->
             {{range .Snippets}}
             <tr>
                 <td><a href="/snippet/view?id={{.ID}}">{{.Title}}</a></td>
-                <td>{{.Created}}</td>
+                <td>{{humanDate .Created}}</td>
                 <td>{{.ID}}</td>
             </tr>
             {{end}}
