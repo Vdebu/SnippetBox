@@ -1,6 +1,10 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/justinas/alice"
+)
 
 func (app *Application) routes() http.Handler {
 	// 创建一个自定义路由
@@ -16,8 +20,13 @@ func (app *Application) routes() http.Handler {
 	mux.HandleFunc("/snippet/view", app.snippetView)
 	mux.HandleFunc("/snippet/create", app.snippetCreate)
 
+	// 使用包创建一个中间件链变量方便管理 执行顺序 ->
+	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 	// 使用中间件将当前mux下的所有路由都包装起来
 	// 相当于是"重写"的在结构体中的方法
 	// 最外层的中间件会第一个进行应用 类似于栈 first in first out
-	return app.recoverPanic(app.logRequest(secureHeaders(mux)))
+	// return app.recoverPanic(app.logRequest(secureHeaders(mux)))
+
+	// 直接调用then方法初始化路由
+	return standard.Then(mux)
 }
