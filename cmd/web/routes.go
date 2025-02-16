@@ -19,5 +19,5 @@ func (app *Application) routes() http.Handler {
 	// 使用中间件将当前mux下的所有路由都包装起来
 	// 相当于是"重写"的在结构体中的方法
 	// 最外层的中间件会第一个进行应用 类似于栈 first in first out
-	return app.logRequest(secureHeaders(mux))
+	return app.recoverPanic(app.logRequest(secureHeaders(mux)))
 }

@@ -18,6 +18,10 @@ func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 		return
 	}
+
+	// 每一个请求都是一个独立的goroutine 这里的panic不会导致server崩溃
+	// panic("something go wrong...")
+
 	snippets, err := app.snippets.Latest()
 	if err != nil {
 		app.serverError(w, err)
