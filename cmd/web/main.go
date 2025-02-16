@@ -63,6 +63,7 @@ func main() {
 		// 改变输出错误日志的方法
 		ErrorLog: errlog,
 		// 设置自定义结构体中的处理器
+		// 实现了http.handler接口serverMux可以直接用作处理器参数
 		Handler: app.routes(),
 	}
 	infolog.Println("server start at", *addr, "...")
