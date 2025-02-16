@@ -2,7 +2,7 @@ package main
 
 import "net/http"
 
-func (app *Application) routes() *http.ServeMux {
+func (app *Application) routes() http.Handler {
 	// 创建一个自定义路由
 	mux := http.NewServeMux()
 	// 调用
@@ -15,6 +15,8 @@ func (app *Application) routes() *http.ServeMux {
 	mux.HandleFunc("/", app.home)
 	mux.HandleFunc("/snippet/view", app.snippetView)
 	mux.HandleFunc("/snippet/create", app.snippetCreate)
-	
-	return mux
+
+	// 使用中间件将当前mux下的所有路由都包装起来
+	// 相当于是"重写"的在结构体中的方法
+	return secureHeaders(mux)
 }
