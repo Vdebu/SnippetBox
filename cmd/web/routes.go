@@ -13,6 +13,12 @@ func (app *Application) routes() http.Handler {
 	// 使用三方路由库建立一个可以制定处理器访问方法与url占位符的复用器
 	router := httprouter.New()
 
+	// 重写当前路由的内置notfound函数 使整个应用程序表现一致
+	// 尝试访问不存在的路由器与合法但是不存在的页面
+	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		app.notFound(w)
+	})
+
 	// 调用
 	// 创建静态文件服务器
 	fs := http.FileServer(http.Dir("D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/ui/static"))
