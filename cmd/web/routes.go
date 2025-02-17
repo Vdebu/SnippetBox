@@ -3,22 +3,27 @@ package main
 import (
 	"net/http"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
 )
 
 func (app *Application) routes() http.Handler {
 	// 创建一个自定义路由
-	mux := http.NewServeMux()
+	// mux := http.NewServeMux()
+	// 使用三方路由库建立一个可以制定处理器访问方法与url占位符的复用器
+	router := httprouter.New()
+
 	// 调用
 	// 创建静态文件服务器
 	fs := http.FileServer(http.Dir("D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/ui/static"))
 	// 去除前缀后从文件服务器中查找文件并返回
 	// 不想让用户直接访问根目录可以检测访问路径并直接返回一个静态页面
-	mux.Handle("/static/", http.StripPrefix("/static", fs))
+	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fs))
 
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/snippet/view", app.snippetView)
-	mux.HandleFunc("/snippet/create", app.snippetCreate)
+	router.HandlerFunc(http.MethodGet, "/", app.home)
+	router.HandlerFunc(http.MethodGet, "/snippet/view/:id", app.snippetView)
+	router.HandlerFunc(http.MethodGet, "/snippet/create", app.snippetCreate)
+	router.HandlerFunc(http.MethodPost, "/snippet/create", app.snippetCreatePost)
 
 	// 使用包创建一个中间件链变量方便管理 执行顺序 ->
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
@@ -28,5 +33,5 @@ func (app *Application) routes() http.Handler {
 	// return app.recoverPanic(app.logRequest(secureHeaders(mux)))
 
 	// 直接调用then方法初始化路由
-	return standard.Then(mux)
+	return standard.Then(router)
 }
