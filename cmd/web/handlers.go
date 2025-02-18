@@ -86,6 +86,12 @@ func (app *Application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 
 	// 使用三方库可以在初始化处理器的时候直接制定请求方法
 	// 后续用于返回一个填写信息的网页
+
+	// 创建数据结构体用于后续写入 因为这里需要数据中的时间(只初始化了时间)所以才需要再初始化这个结构体
+	// 这也保证了代码的结构统一
+	data := app.newTemplateData(r)
+
+	app.render(w, http.StatusOK, "create.tmpl.html", data)
 	w.Write([]byte("Createa a new miku..."))
 
 }

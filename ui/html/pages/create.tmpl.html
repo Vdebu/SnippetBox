@@ -1,0 +1,27 @@
+{{define "title"}}Blank{{end}}
+
+{{define "main"}}
+    <!-- form作为包裹所有表单的基础结构,接收用户的数据并返回 -->
+    <form action="snippet/create" method="post">
+
+        <div>
+            <label for="">Title:</label>
+            <input type="text" name="title">
+        </div>
+
+        <div>
+            <label for="">Content:</label>
+            <textarea name="content" id=""></textarea>
+        </div>
+        
+        <div>
+            <label for="">Delete in:</label>
+            <input type="radio" name="expires" value="365" checked> One Year
+            <input type="radio" name="expires" value="7"> One Week
+            <input type="radio" name="expires" value="1"> One Day
+        </div>
+        <div>
+            <input type="submit" value="Publish snippet">
+        </div>
+    </form> 
+{{end}}
