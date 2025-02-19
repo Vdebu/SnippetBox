@@ -96,16 +96,32 @@ func (app *Application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// 获取用户在网页中填写的信息
 func (app *Application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
+	// 解析请求中的表单数据 加入r.PostForm(一个map)
+	err := r.ParseForm()
 	// 只接受Post请求的处理器
-	title := "mikudayo"
-	content := "mikudayo\nmikudayo\nmikudayo"
-	expires := 7
+	if err != nil {
+		// 发送badrequest
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	// 通过在html定义的key获取用户输入的内容
+	title := r.PostForm.Get("title")
+	content := r.PostForm.Get("content")
+	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+	// post相关错误都填写badrequest
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
 	id, err := app.snippets.Insert(title, content, expires)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
+
 	// 创建成功后将用户重定向到最新创建的snippet
 	// curl -iL -X POST http://localhost:3939/snippet/create
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)

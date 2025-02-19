@@ -17,7 +17,7 @@ type Application struct {
 	// 向结构体注入自定义依赖 将处理器定义为结构体的方法
 	errlog  *log.Logger
 	infolog *log.Logger
-	// 导入模型依赖
+	// snippet模型 包含数据库连接池与增删改查方法
 	snippets      *models.SnippetModel
 	TemplateCache map[string]*template.Template
 }

@@ -10,8 +10,9 @@ import (
 
 type TemplateData struct {
 	CurrentYear int
-	Snippet     *models.Snippet
-	Snippets    []*models.Snippet
+	// 渲染的时候需要将数据注入 所以将snippet都嵌入到TemplateData中 主依赖只包含数据库与操作方法
+	Snippet  *models.Snippet
+	Snippets []*models.Snippet
 }
 
 // 自定义时间格式化函数

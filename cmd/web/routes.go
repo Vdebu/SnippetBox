@@ -28,6 +28,7 @@ func (app *Application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/", app.home)
 	router.HandlerFunc(http.MethodGet, "/snippet/view/:id", app.snippetView)
+	// render 一个用于填写信息的网页
 	router.HandlerFunc(http.MethodGet, "/snippet/create", app.snippetCreate)
 	router.HandlerFunc(http.MethodPost, "/snippet/create", app.snippetCreatePost)
 
