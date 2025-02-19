@@ -9,19 +9,33 @@
 
         <div>
             <label for="">Title:</label>
-            <input type="text" name="title">
+            <!-- 使用with关键字检查值是否存在 存在的话就直接输出 -->
+             <!-- 字典字段的key可以直接通过.来访问 大小写都行 -->
+            {{with .Form.FieldErrors.title}}
+            <label for="" class="error">{{.}}</label>
+            {{end}}
+            <!-- 对于input通过指定value进行内容重新填充 -->
+            <input type="text" name="title" value="{{.Form.Title}}">
         </div>
 
         <div>
             <label for="">Content:</label>
-            <textarea name="content" id=""></textarea>
+            {{with .Form.FieldErrors.content}}
+            <label for="" class="error">{{.}}</label>
+            {{end}}
+            <!-- 对于textarea直接写入即可 -->
+            <textarea name="content" id="">{{.Form.Content}}</textarea>
         </div>
         
         <div>
             <label for="">Delete in:</label>
-            <input type="radio" name="expires" value="365" checked> One Year
-            <input type="radio" name="expires" value="7"> One Week
-            <input type="radio" name="expires" value="1"> One Day
+            {{with .Form.FieldErrors.expires}}
+            <label for="" class="error">{{.}}</label>
+            {{end}}
+            <!-- checked 指的是默认选项 -->
+            <input type="radio" name="expires" value="365" {{if (eq .Form.Expires 365)}}checked {{end}}> One Year
+            <input type="radio" name="expires" value="7" {{if (eq .Form.Expires 7)}} checked {{end}}> One Week
+            <input type="radio" name="expires" value="1" {{if (eq .Form.Expires 1)}} checked {{end}}> One Day
         </div>
         <div>
             <input type="submit" value="Publish snippet">

@@ -9,10 +9,14 @@ import (
 )
 
 type TemplateData struct {
+	// 显示在网页下方的年份
 	CurrentYear int
 	// 渲染的时候需要将数据注入 所以将snippet都嵌入到TemplateData中 主依赖只包含数据库与操作方法
+	// 渲染网页要用到的主体
 	Snippet  *models.Snippet
 	Snippets []*models.Snippet
+	// 用于存储用户输入错误的信息用于重新写入页面
+	Form any
 }
 
 // 自定义时间格式化函数
