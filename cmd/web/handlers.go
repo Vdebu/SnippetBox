@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
 	"SnippetBox.mikudayo.net/internal/models"
 	"github.com/julienschmidt/httprouter"
@@ -116,12 +118,36 @@ func (app *Application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Get方法在查找不到数据的情况下是会返回空字符串的
+	// 验证从用户端得到的信息是否正确
+
+	// 创建一个map用于存储各种类型的错误
+	fieldErrors := make(map[string]string)
+	// 确定title不是空值并且长度小于100 如果失败就直接把错误信息加入map
+	if strings.TrimSpace(title) == "" {
+		fieldErrors["title"] = "标题不能为空值..."
+	} else if utf8.RuneCountInString(title) > 100 {
+		fieldErrors["title"] = "标题长度不能超过100个字符..."
+	}
+	// 确定内容不是空值
+	if strings.TrimSpace(content) == "" {
+		fieldErrors["content"] = "内容不能为空值..."
+	}
+	// 确定日期使用的是给定的值
+	if expires != 1 && expires != 7 && expires != 365 {
+		fieldErrors["expires"] = "日期必须为1,7,365..."
+	}
+	// 检测是否有字段出现错误
+	if len(fieldErrors) > 0 {
+		// 如果有字段出现错误直接向网页输出错误信息并结束当前会话
+		fmt.Fprint(w, fieldErrors)
+		return
+	}
 	id, err := app.snippets.Insert(title, content, expires)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
-
 	// 创建成功后将用户重定向到最新创建的snippet
 	// curl -iL -X POST http://localhost:3939/snippet/create
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
