@@ -8,6 +8,7 @@ import (
 	"SnippetBox.mikudayo.net/internal/models"
 )
 
+// 用于存储渲染网页所需要用到的数据
 type TemplateData struct {
 	// 显示在网页下方的年份
 	CurrentYear int

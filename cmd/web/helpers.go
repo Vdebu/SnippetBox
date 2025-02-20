@@ -23,7 +23,6 @@ func (app *Application) serverError(w http.ResponseWriter, err error) {
 }
 
 // 输出客户端(http)的错误信息,一般是由用户自己造成的
-
 func (app *Application) clientError(w http.ResponseWriter, status int) {
 	http.Error(w, http.StatusText(status), status)
 }
@@ -60,6 +59,7 @@ func (app *Application) render(w http.ResponseWriter, status int, page string, d
 	buf.WriteTo(w)
 }
 
+// 默认出事TemplateData结构体中的时间字段(每个网页底部都需要显示时间)
 func (app *Application) newTemplateData(r *http.Request) *TemplateData {
 	return &TemplateData{
 		// 获取当前的年份

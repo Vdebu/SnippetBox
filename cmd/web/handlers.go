@@ -7,19 +7,20 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
-	"unicode/utf8"
 
 	"SnippetBox.mikudayo.net/internal/models"
+
 	"github.com/julienschmidt/httprouter"
 )
 
 // 使用结构体存储用户输入的信息
 type snippetCreateForm struct {
-	Title       string
-	Content     string
-	Expires     int
-	FieldErrors map[string]string
+	Title   string
+	Content string
+	Expires int
+	// 将验证器注入要验证的数据中
+	// (类似于继承直接使当前要检验的数据结构拥有验证器所有的字段与方法)
+	models.Validator
 }
 
 func (app *Application) home(w http.ResponseWriter, r *http.Request) {
@@ -133,28 +134,19 @@ func (app *Application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		Content: r.PostForm.Get("content"),
 		Expires: expires,
 		// map必须字段也要进行初始化 否则会直接panic(assignment to entry in nil map)
-		FieldErrors: map[string]string{},
+
 	}
 	// Get方法在查找不到数据的情况下是会返回空字符串的
 	// 验证从用户端得到的信息是否正确
 
 	// 创建一个map用于存储各种类型的错误
 	// 确定title不是空值并且长度小于100 如果失败就直接把错误信息加入map
-	if strings.TrimSpace(form.Title) == "" {
-		form.FieldErrors["title"] = "标题不能为空值..."
-	} else if utf8.RuneCountInString(form.Title) > 100 {
-		form.FieldErrors["title"] = "标题长度不能超过100个字符..."
-	}
-	// 确定内容不是空值
-	if strings.TrimSpace(form.Content) == "" {
-		form.FieldErrors["content"] = "内容不能为空值..."
-	}
-	// 确定日期使用的是给定的值
-	if expires != 1 && expires != 7 && expires != 365 {
-		form.FieldErrors["expires"] = "日期必须为1,7,365..."
-	}
+	form.CheckField(form.NotBlank(form.Title), "title", "标题不能为空...")
+	form.CheckField(form.MaxChars(form.Title, 100), "title", "标题长度不能超过100个字符...")
+	form.CheckField(form.NotBlank(form.Content), "content", "内容不能为空...")
+	form.CheckField(form.PermittedInt(form.Expires, 3, 7, 365), "expires", "时间必须为1,7,365...")
 	// 检测是否有字段出现错误
-	if len(form.FieldErrors) > 0 {
+	if !form.Valid() {
 		// 如果有字段出现错误就以原先的输入信息重新渲染网页
 		data := app.newTemplateData(r)
 		data.Form = form

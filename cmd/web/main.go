@@ -20,6 +20,7 @@ type Application struct {
 	// snippet模型 包含数据库连接池与增删改查方法
 	snippets      *models.SnippetModel
 	TemplateCache map[string]*template.Template
+	
 }
 
 func main() {
