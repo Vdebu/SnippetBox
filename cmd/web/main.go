@@ -10,6 +10,7 @@ import (
 
 	"SnippetBox.mikudayo.net/internal/models"
 
+	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -19,8 +20,9 @@ type Application struct {
 	infolog *log.Logger
 	// snippet模型 包含数据库连接池与增删改查方法
 	snippets      *models.SnippetModel
-	TemplateCache map[string]*template.Template
-	
+	templateCache map[string]*template.Template
+	// 向主程序注入解码依赖便于将用户的输入直接解码到相应的存储结构中去
+	formDecoder *form.Decoder
 }
 
 func main() {
@@ -51,11 +53,14 @@ func main() {
 		errlog.Println(err)
 		return
 	}
+	// 初始化解码器
+	formDecoder := form.NewDecoder()
 	app := &Application{
 		errlog:        errlog,
 		infolog:       infolog,
 		snippets:      &models.SnippetModel{DB: db},
-		TemplateCache: cache,
+		templateCache: cache,
+		formDecoder:   formDecoder,
 	}
 	// 自定义server结构体应用自定义的errlog否则在默认http遇到错误时还会调用原始的错误输出
 	srv := &http.Server{

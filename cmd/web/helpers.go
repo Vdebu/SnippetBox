@@ -2,10 +2,13 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 	"time"
+
+	"github.com/go-playground/form/v4"
 )
 
 // 将函数输出错误信息的权限大部分移交给helper(app.errlog,)
@@ -35,7 +38,7 @@ func (app *Application) notFound(w http.ResponseWriter) {
 // 用于渲染各个网页
 func (app *Application) render(w http.ResponseWriter, status int, page string, data *TemplateData) {
 	// 从模板缓存中获取当前请求页面的模板
-	ts, ok := app.TemplateCache[page]
+	ts, ok := app.templateCache[page]
 	if !ok {
 		// 若当前请求的页面模板不存在
 		// 定义一个新的错误并报告
@@ -57,6 +60,29 @@ func (app *Application) render(w http.ResponseWriter, status int, page string, d
 	w.WriteHeader(status)
 	// 向响应体写入数据
 	buf.WriteTo(w)
+}
+
+// 通过解码将读取到的内容写入传入的结构体(指针)中
+func (app *Application) decodePostForm(r *http.Request, dst any) error {
+	// 先对request进行解析
+	err := r.ParseForm()
+	if err != nil {
+		return err
+	}
+	// 尝试将解析得到的数据按结构体中的要求解码
+	err = app.formDecoder.Decode(dst, r.PostForm)
+	if err != nil {
+		// 只处理传入的数据存储器不是指针的错误
+		// 定义出decode会返回的无效的解码错误用Errors的方法进行解码
+		var invalidDecoderError *form.InvalidDecoderError
+		if errors.As(err, &invalidDecoderError) {
+			// 直接panic交给recover中间件进行处理
+			panic(err)
+		}
+		// 如果并非无效值错误就直接返回
+		return err
+	}
+	return nil
 }
 
 // 默认出事TemplateData结构体中的时间字段(每个网页底部都需要显示时间)

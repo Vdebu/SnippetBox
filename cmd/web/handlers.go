@@ -15,12 +15,13 @@ import (
 
 // 使用结构体存储用户输入的信息
 type snippetCreateForm struct {
-	Title   string
-	Content string
-	Expires int
+	// 告诉解码器去html里找name为`...`的input标签
+	Title   string `form:"title"`
+	Content string `form:"content"`
+	Expires int    `form:"expires"`
 	// 将验证器注入要验证的数据中
 	// (类似于继承直接使当前要检验的数据结构拥有验证器所有的字段与方法)
-	models.Validator
+	models.Validator `form:"-"`
 }
 
 func (app *Application) home(w http.ResponseWriter, r *http.Request) {
@@ -116,25 +117,31 @@ func (app *Application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 func (app *Application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
 	// 解析请求中的表单数据 加入r.PostForm(一个map)
 	err := r.ParseForm()
-	// 只接受Post请求的处理器
 	if err != nil {
 		// 发送badrequest
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 	// 通过在html定义的key获取用户输入的内容
-	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
-	// post相关错误都填写badrequest
+	// expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+	// // post相关错误都填写badrequest
+	// if err != nil {
+	// 	app.clientError(w, http.StatusBadRequest)
+	// 	return
+	// }
+	// form := snippetCreateForm{
+	// 	Title:   r.PostForm.Get("title"),
+	// 	Content: r.PostForm.Get("content"),
+	// 	Expires: expires,
+	// 	// map必须字段也要进行初始化 否则会直接panic(assignment to entry in nil map)
+
+	// }
+	var form snippetCreateForm
+	// 使用自定的helper公式化解码数据
+	err = app.decodePostForm(r, &form)
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
-	}
-	form := snippetCreateForm{
-		Title:   r.PostForm.Get("title"),
-		Content: r.PostForm.Get("content"),
-		Expires: expires,
-		// map必须字段也要进行初始化 否则会直接panic(assignment to entry in nil map)
-
 	}
 	// Get方法在查找不到数据的情况下是会返回空字符串的
 	// 验证从用户端得到的信息是否正确
