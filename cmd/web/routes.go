@@ -26,11 +26,15 @@ func (app *Application) routes() http.Handler {
 	// 不想让用户直接访问根目录可以检测访问路径并直接返回一个静态页面
 	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fs))
 
-	router.HandlerFunc(http.MethodGet, "/", app.home)
-	router.HandlerFunc(http.MethodGet, "/snippet/view/:id", app.snippetView)
+	// 创建包含seesion的新中间件链对需要共享信息的路由进行手动预包装
+	dynamic := alice.New(app.sessionManager.LoadAndSave)
+
+	// .ThenFunc()返回的还是一个handler而不是像HandlerFunc直接成为可执行的路由 所以在这里要改变原先router.HandlerFunc()为router.Handler()来注册路由
+	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))
+	router.Handler(http.MethodGet, "/snippet/view/:id", dynamic.ThenFunc(app.snippetView))
 	// render 一个用于填写信息的网页
-	router.HandlerFunc(http.MethodGet, "/snippet/create", app.snippetCreate)
-	router.HandlerFunc(http.MethodPost, "/snippet/create", app.snippetCreatePost)
+	router.Handler(http.MethodGet, "/snippet/create", dynamic.ThenFunc(app.snippetCreate))
+	router.Handler(http.MethodPost, "/snippet/create", dynamic.ThenFunc(app.snippetCreatePost))
 
 	// 使用包创建一个中间件链变量方便管理 执行顺序 ->
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)

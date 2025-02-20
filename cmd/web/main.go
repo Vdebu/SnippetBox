@@ -7,9 +7,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"SnippetBox.mikudayo.net/internal/models"
 
+	"github.com/alexedwards/scs/mysqlstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -23,6 +26,8 @@ type Application struct {
 	templateCache map[string]*template.Template
 	// 向主程序注入解码依赖便于将用户的输入直接解码到相应的存储结构中去
 	formDecoder *form.Decoder
+	// 载入用于请求共享信息的依赖
+	sessionManager *scs.SessionManager
 }
 
 func main() {
@@ -53,14 +58,21 @@ func main() {
 		errlog.Println(err)
 		return
 	}
+	// 初始化会话
+	sessionManager := scs.New()
+	// 指定存储临时消息的数据库
+	sessionManager.Store = mysqlstore.New(db)
+	// 指定时间后对失效的信息进行删除(12小时)
+	sessionManager.Lifetime = 12 * time.Hour
 	// 初始化解码器
 	formDecoder := form.NewDecoder()
 	app := &Application{
-		errlog:        errlog,
-		infolog:       infolog,
-		snippets:      &models.SnippetModel{DB: db},
-		templateCache: cache,
-		formDecoder:   formDecoder,
+		errlog:         errlog,
+		infolog:        infolog,
+		snippets:       &models.SnippetModel{DB: db},
+		templateCache:  cache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
 	}
 	// 自定义server结构体应用自定义的errlog否则在默认http遇到错误时还会调用原始的错误输出
 	srv := &http.Server{
