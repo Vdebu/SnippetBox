@@ -35,7 +35,12 @@ func (app *Application) routes() http.Handler {
 	// render 一个用于填写信息的网页
 	router.Handler(http.MethodGet, "/snippet/create", dynamic.ThenFunc(app.snippetCreate))
 	router.Handler(http.MethodPost, "/snippet/create", dynamic.ThenFunc(app.snippetCreatePost))
-
+	// 用户信息处理相关的处理器
+	router.Handler(http.MethodGet, "/user/signup", dynamic.ThenFunc(app.userSignup))
+	router.Handler(http.MethodPost, "/user/signup", dynamic.ThenFunc(app.userSignupPost))
+	router.Handler(http.MethodGet, "/user/login", dynamic.ThenFunc(app.userLogin))
+	router.Handler(http.MethodPost, "/user/login", dynamic.ThenFunc(app.userLoginPost))
+	router.Handler(http.MethodPost, "/user/logout", dynamic.ThenFunc(app.userLogoutPost))
 	// 使用包创建一个中间件链变量方便管理 执行顺序 ->
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 	// 使用中间件将当前mux下的所有路由都包装起来

@@ -1,6 +1,15 @@
 {{define "nav"}}
 <nav>
-    <a href="/">主页</a>
-    <a href="/snippet/create">创建一个新消息</a>
+    <div>
+        <a href="/">主页</a>
+        <a href="/snippet/create">创建一个新消息</a>
+    </div>
+    <div>
+        <a href="/user/signup">注册</a>
+        <a href="/user/login">登入</a>
+        <form action="/user/logout" method="post">
+            <button>登出</button>
+        </form>
+    </div>
 </nav>
 {{end}}

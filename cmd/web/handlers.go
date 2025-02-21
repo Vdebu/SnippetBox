@@ -24,6 +24,7 @@ type snippetCreateForm struct {
 	models.Validator `form:"-"`
 }
 
+// 展示网站的主页面
 func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 	// 指定"/"的逻辑 防止预料之外的访问
 	if r.URL.Path != "/" {
@@ -47,6 +48,7 @@ func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 	// w.Write([]byte("mikudayoooo"))
 }
 
+// 展示一个具体的消息页面
 func (app *Application) snippetView(w http.ResponseWriter, r *http.Request) {
 	// 获取url ?后的id用于数据库查询
 	// 抽取为string并用于转换判断是否为正值
@@ -83,6 +85,7 @@ func (app *Application) snippetView(w http.ResponseWriter, r *http.Request) {
 	// fmt.Fprintf(w, "Display a specific miku %v...", snippet)
 }
 
+// 展示创建消息的页面
 func (app *Application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 	// 指定request的方法必须是POST
 	// if r.Method != http.MethodPost {
@@ -163,4 +166,29 @@ func (app *Application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 	app.sessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
 	// 创建成功后将用户重定向到最新创建的snippet
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
+}
+
+// 展示用户的注册页面
+func (app *Application) userSignup(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Display a html form to signup a new user...")
+}
+
+// 将用户填写的注册信息发送到后端
+func (app *Application) userSignupPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Create a new user...")
+}
+
+// 展示用户的登录界面
+func (app *Application) userLogin(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Display a html form for logging in a user...")
+}
+
+// 将用户填写的登录信息发送到后端
+func (app *Application) userLoginPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Authenticate and login the user...")
+}
+
+// 将用户需要退出的信息发送到后端
+func (app *Application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Logout the user...")
 }
