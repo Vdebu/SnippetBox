@@ -23,7 +23,9 @@ type Application struct {
 	errlog  *log.Logger
 	infolog *log.Logger
 	// snippet模型 包含数据库连接池与增删改查方法
-	snippets      *models.SnippetModel
+	snippets *models.SnippetModel
+	// 用户模型 包含数据库连接池与增删改查有效性验证方法
+	users         *models.UserModel
 	templateCache map[string]*template.Template
 	// 向主程序注入解码依赖便于将用户的输入直接解码到相应的存储结构中去
 	formDecoder *form.Decoder
@@ -73,6 +75,7 @@ func main() {
 		errlog:         errlog,
 		infolog:        infolog,
 		snippets:       &models.SnippetModel{DB: db},
+		users:          &models.UserModel{DB: db},
 		templateCache:  cache,
 		formDecoder:    formDecoder,
 		sessionManager: sessionManager,
