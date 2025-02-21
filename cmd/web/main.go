@@ -12,7 +12,7 @@ import (
 	"SnippetBox.mikudayo.net/internal/models"
 
 	"github.com/alexedwards/scs/mysqlstore"
-	"github.com/alexedwards/scs/v2"	
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -62,8 +62,10 @@ func main() {
 	sessionManager := scs.New()
 	// 指定存储临时消息的数据库
 	sessionManager.Store = mysqlstore.New(db)
-	// 指定时间后对失效的信息进行删除(12小时)
+	// 指定时间后对失效的信息进行删除(session cookie 有效时长12小时)
 	sessionManager.Lifetime = 12 * time.Hour
+	// 使用HTTPS的机制确保用户cookie的安全
+	sessionManager.Cookie.Secure = true
 	// 初始化解码器
 	formDecoder := form.NewDecoder()
 	app := &Application{
@@ -86,7 +88,8 @@ func main() {
 	}
 	infolog.Println("server start at", *addr, "...")
 	// 设置了默认值之后使用新结构体的方法直接启动服务器
-	err = srv.ListenAndServe()
+	// 传入证书与秘钥后启动HTTPS服务器
+	err = srv.ListenAndServeTLS("D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/tls/cert.pem", "D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/tls/key.pem")
 	// 检查服务室是否会启动错误
 	if err != nil {
 		errlog.Fatal(err)
