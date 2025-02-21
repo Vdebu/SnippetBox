@@ -71,12 +71,13 @@ func (app *Application) snippetView(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
+	// 初始化用于渲染网页的信息
 	// 取出临时存在于ctx中的数据并删除(一次性使用) 在这里如果信息不存在就会返回空的字符串
-	flash := app.sessionManager.PopString(r.Context(), "flash")
+	// flash := app.sessionManager.PopString(r.Context(), "flash")
 	data := app.newTemplateData(r)
 	data.Snippet = snippet
 	// 将创建成功的消息导入数据用于网页渲染
-	data.Flash = flash
+	// data.Flash = flash
 	app.render(w, http.StatusOK, "view.tmpl.html", data)
 	// 将搜索到的内容直接输出到响应体
 	// fmt.Fprintf(w, "Display a specific miku %v...", snippet)

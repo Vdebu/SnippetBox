@@ -90,5 +90,7 @@ func (app *Application) newTemplateData(r *http.Request) *TemplateData {
 	return &TemplateData{
 		// 获取当前的年份
 		CurrentYear: time.Now().Year(),
+		// 获取即时消息flash(若不存在就会返回空字符串在页面的with机制下就不会进行显示)
+		Flash: app.sessionManager.PopString(r.Context(), "flash"),
 	}
 }
