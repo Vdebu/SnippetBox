@@ -93,6 +93,13 @@ func main() {
 		Handler: app.routes(),
 		// 载入TLS配置
 		TLSConfig: tlsConfig,
+		// 设置请求超时规则
+		// 在指定时间内若没有新的请求就关闭连接
+		IdleTimeout: time.Minute,
+		// 从请求被接受到读取网页主体最大的等待时间 超时当前请求会被终止
+		ReadTimeout: 5 * time.Second,
+		// 从读取响应头到响应写入完成的最大持续时间 超时请求会被终止
+		WriteTimeout: 10 * time.Second,
 	}
 	infolog.Println("server start at", *addr, "...")
 	// 设置了默认值之后使用新结构体的方法直接启动服务器
