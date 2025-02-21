@@ -1,4 +1,4 @@
-{{define "title"}}Create a New Snippet{{end}}
+{{define "title"}}创建一个新消息{{end}}
 
 {{define "main"}}
     <!-- form作为包裹所有表单的基础结构,接收用户的数据并返回 -->
@@ -8,7 +8,7 @@
     <form action="/snippet/create" method="POST">
 
         <div>
-            <label for="">Title:</label>
+            <label for="">标题:</label>
             <!-- 使用with关键字检查值是否存在 存在的话就直接输出 -->
              <!-- 字典字段的key可以直接通过.来访问 大小写都行 -->
             {{with .Form.FieldErrors.title}}
@@ -19,7 +19,7 @@
         </div>
 
         <div>
-            <label for="">Content:</label>
+            <label for="">内容:</label>
             {{with .Form.FieldErrors.content}}
             <label for="" class="error">{{.}}</label>
             {{end}}
@@ -28,17 +28,17 @@
         </div>
         
         <div>
-            <label for="">Delete in:</label>
+            <label for="">时效:</label>
             {{with .Form.FieldErrors.expires}}
             <label for="" class="error">{{.}}</label>
             {{end}}
             <!-- checked 指的是默认选项 -->
-            <input type="radio" name="expires" value="365" {{if (eq .Form.Expires 365)}}checked {{end}}> One Year
-            <input type="radio" name="expires" value="7" {{if (eq .Form.Expires 7)}} checked {{end}}> One Week
-            <input type="radio" name="expires" value="1" {{if (eq .Form.Expires 1)}} checked {{end}}> One Day
+            <input type="radio" name="expires" value="365" {{if (eq .Form.Expires 365)}}checked {{end}}> 一年
+            <input type="radio" name="expires" value="7" {{if (eq .Form.Expires 7)}} checked {{end}}> 一周
+            <input type="radio" name="expires" value="1" {{if (eq .Form.Expires 1)}} checked {{end}}> 一天
         </div>
         <div>
-            <input type="submit" value="Publish snippet">
+            <input type="submit" value="创建消息">
         </div>
     </form> 
 {{end}}
