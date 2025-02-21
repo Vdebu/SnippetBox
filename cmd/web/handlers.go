@@ -71,8 +71,12 @@ func (app *Application) snippetView(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
+	// 取出临时存在于ctx中的数据并删除(一次性使用) 在这里如果信息不存在就会返回空的字符串
+	flash := app.sessionManager.PopString(r.Context(), "flash")
 	data := app.newTemplateData(r)
 	data.Snippet = snippet
+	// 将创建成功的消息导入数据用于网页渲染
+	data.Flash = flash
 	app.render(w, http.StatusOK, "view.tmpl.html", data)
 	// 将搜索到的内容直接输出到响应体
 	// fmt.Fprintf(w, "Display a specific miku %v...", snippet)
@@ -115,27 +119,14 @@ func (app *Application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 
 // 获取用户在网页中填写的信息
 func (app *Application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
-	// 解析请求中的表单数据 加入r.PostForm(一个map)
 	err := r.ParseForm()
 	if err != nil {
 		// 发送badrequest
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
-	// 通过在html定义的key获取用户输入的内容
-	// expires, err := strconv.Atoi(r.PostForm.Get("expires"))
-	// // post相关错误都填写badrequest
-	// if err != nil {
-	// 	app.clientError(w, http.StatusBadRequest)
-	// 	return
-	// }
-	// form := snippetCreateForm{
-	// 	Title:   r.PostForm.Get("title"),
-	// 	Content: r.PostForm.Get("content"),
-	// 	Expires: expires,
-	// 	// map必须字段也要进行初始化 否则会直接panic(assignment to entry in nil map)
 
-	// }
+	// map必须字段也要进行初始化 否则会直接panic(assignment to entry in nil map)
 	var form snippetCreateForm
 	// 使用自定的helper公式化解码数据
 	err = app.decodePostForm(r, &form)
@@ -165,7 +156,10 @@ func (app *Application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		app.serverError(w, err)
 		return
 	}
-	// 创建成功后将用户重定向到最新创建的snippet
+
 	// curl -iL -X POST http://localhost:3939/snippet/create
+	// 创建成功后为当前用户的会话添加共享信息(如果key存在则会将原先的信息覆盖掉)
+	app.sessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
+	// 创建成功后将用户重定向到最新创建的snippet
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }

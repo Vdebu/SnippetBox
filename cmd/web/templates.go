@@ -17,7 +17,8 @@ type TemplateData struct {
 	Snippet  *models.Snippet
 	Snippets []*models.Snippet
 	// 用于存储用户输入错误的信息用于重新写入页面
-	Form any
+	Form  any
+	Flash string
 }
 
 // 自定义时间格式化函数
