@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"html/template"
@@ -76,6 +77,11 @@ func main() {
 		formDecoder:    formDecoder,
 		sessionManager: sessionManager,
 	}
+	// 指定启用椭圆曲线优化服务器的性能
+	// 由于在go1.20只有tls.CurveP256与tls.X25519装配使用了
+	tlsConfig := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.CurveP256, tls.X25519},
+	}
 	// 自定义server结构体应用自定义的errlog否则在默认http遇到错误时还会调用原始的错误输出
 	srv := &http.Server{
 		// 改变默认端口
@@ -85,6 +91,8 @@ func main() {
 		// 设置自定义结构体中的处理器
 		// 实现了http.handler接口serverMux可以直接用作处理器参数
 		Handler: app.routes(),
+		// 载入TLS配置
+		TLSConfig: tlsConfig,
 	}
 	infolog.Println("server start at", *addr, "...")
 	// 设置了默认值之后使用新结构体的方法直接启动服务器
