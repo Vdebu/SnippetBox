@@ -16,7 +16,7 @@ type TemplateData struct {
 	// 渲染网页要用到的主体
 	Snippet  *models.Snippet
 	Snippets []*models.Snippet
-	// 用于存储用户输入错误的信息用于重新写入页面
+	// 用于存储用户输入的错误信息重新渲染页面
 	Form  any
 	Flash string
 }

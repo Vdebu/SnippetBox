@@ -85,7 +85,7 @@ func (app *Application) decodePostForm(r *http.Request, dst any) error {
 	return nil
 }
 
-// 默认出事TemplateData结构体中的时间字段(每个网页底部都需要显示时间)
+// 初始化TemplateData结构体中每个网页都会用上的字段
 func (app *Application) newTemplateData(r *http.Request) *TemplateData {
 	return &TemplateData{
 		// 获取当前的年份

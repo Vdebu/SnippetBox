@@ -1,0 +1,37 @@
+{{define "title"}}注册{{end}}
+
+{{define "main"}}
+
+<form action="/user/signup" method="post" novalidate>
+    <!-- 输入用户昵称 -->
+    <div>
+        <label for="">昵称:</label>
+        <!-- 若存在错误信息就进行输出 -->
+        {{with .Form.FieldErrors.name}}
+            <label for="" class="error">{{.}}</label>
+        {{end}}
+        <input type="text" name="name" value="{{.Form.Name}}">
+    </div>
+    <!-- 输入邮箱 -->
+    <div>
+        <label for="">邮箱:</label>
+        {{with .Form.FieldErrors.email}}
+            <label for="" class="error">{{.}}</label>
+        {{end}}
+        <input type="email" name="email" value="{{.Form.Email}}">
+    </div>
+    <!-- 输入密码 -->
+     <div>
+        <label for="">密码:</label>
+        {{with .Form.FieldErrors.password}}
+            <label for="" class="error">{{.}}</label>
+        {{end}}
+        <input type="password" name="password">
+     </div>
+     <!-- 提交按钮 -->
+     <div>
+        <input type="submit" name="注册">
+     </div>
+</form>
+
+{{end}}

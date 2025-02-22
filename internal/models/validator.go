@@ -1,9 +1,13 @@
 package models
 
 import (
+	"regexp"
 	"strings"
 	"unicode/utf8"
 )
+
+// 使用正则表达式匹配用户输入的邮箱
+var EmailRX = regexp.MustCompile(`^[a-zA-Z0-9.!#$%&'*+/=?^_` + "`" + `{|}~-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
 // 验证器:包含验证信息是否准确的方法与存储错误信息的字段
 type Validator struct {
@@ -47,7 +51,7 @@ func (v *Validator) MaxChars(value string, max int) bool {
 	return utf8.RuneCountInString(value) <= max
 }
 
-// 检查用户填写的值是否合法
+// 检查用户填写的值是否是合法取值
 func (v *Validator) PermittedInt(val int, permittedValues ...int) bool {
 	for _, v := range permittedValues {
 		if val == v {
@@ -55,4 +59,14 @@ func (v *Validator) PermittedInt(val int, permittedValues ...int) bool {
 		}
 	}
 	return false
+}
+
+// 检查是否满足最小字符要求
+func (v *Validator) MinChars(value string, min int) bool {
+	return utf8.RuneCountInString(value) >= min
+}
+
+// 检查是否匹配字符串格式(通过正则表达式)
+func (v *Validator) Matchs(value string, rx *regexp.Regexp) bool {
+	return rx.MatchString(value)
 }

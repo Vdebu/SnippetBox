@@ -48,7 +48,7 @@ func main() {
 	infolog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	// 标准错误输出流 日期与时间与相关文件信息
 	errlog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
-
+	// 并没有将db直接嵌入主程序app 而是嵌入到需要使用db的相关模型中
 	db, err := openDB(*dsn)
 	if err != nil {
 		errlog.Fatal(err)

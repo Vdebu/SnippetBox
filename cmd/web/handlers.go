@@ -13,7 +13,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// 使用结构体存储用户输入的信息
+// 使用结构体存储用户输入的消息
 type snippetCreateForm struct {
 	// 告诉解码器去html里找name为`...`的input标签
 	Title   string `form:"title"`
@@ -21,6 +21,14 @@ type snippetCreateForm struct {
 	Expires int    `form:"expires"`
 	// 将验证器注入要验证的数据中
 	// (类似于继承直接使当前要检验的数据结构拥有验证器所有的字段与方法)
+	models.Validator `form:"-"`
+}
+
+// 使用结构体存储用户填写的个人信息
+type userSignupForm struct {
+	Name             string `form:"name"`
+	Email            string `form:"email"`
+	Password         string `form:"password"`
 	models.Validator `form:"-"`
 }
 
@@ -123,17 +131,10 @@ func (app *Application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 
 // 获取用户在网页中填写的信息
 func (app *Application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		// 发送badrequest
-		app.clientError(w, http.StatusBadRequest)
-		return
-	}
-
 	// map必须字段也要进行初始化 否则会直接panic(assignment to entry in nil map)
 	var form snippetCreateForm
 	// 使用自定的helper公式化解码数据
-	err = app.decodePostForm(r, &form)
+	err := app.decodePostForm(r, &form)
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
@@ -170,12 +171,35 @@ func (app *Application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 
 // 展示用户的注册页面
 func (app *Application) userSignup(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Display a html form to signup a new user...")
+	data := app.newTemplateData(r)
+	// 初始话默认结构体为空值 防止因未传入默认结构体导致网页初始化错误
+	data.Form = userSignupForm{}
+	app.render(w, http.StatusOK, "signup.tmpl.html", data)
 }
 
 // 将用户填写的注册信息发送到后端
 func (app *Application) userSignupPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Create a new user...")
+	// 定义用于存储输入信息的结构体并尝试向其解码
+	var form userSignupForm
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	// 解码成功检查数据的正确性
+	form.CheckField(form.NotBlank(form.Name), "name", "姓名不能为空...")
+	form.CheckField(form.NotBlank(form.Email), "email", "邮箱不能为空...")
+	form.CheckField(form.Matchs(form.Email, models.EmailRX), "email", "输入的邮箱格式错误...")
+	form.CheckField(form.MinChars(form.Password, 8), "password", "密码长度必须大于8...")
+	// 如果填入的字段出现错误就将字段返回给网页重新渲染
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, http.StatusUnprocessableEntity, "signup.tmpl.html", data)
+		return
+	}
+	// 没有出现错误
+	fmt.Fprint(w, "a new user was created...")
 }
 
 // 展示用户的登录界面

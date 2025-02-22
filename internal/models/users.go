@@ -30,6 +30,6 @@ func (m *UserModel) Authenticate(email, password string) (int, error) {
 }
 
 // 通过提供的id检查用户是否存在
-func (m *UserModel) Exist(id int) (bool, error) {
+func (m *UserModel) Exists(id int) (bool, error) {
 	return false, nil
 }
