@@ -199,7 +199,28 @@ func (app *Application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// 没有出现错误
-	fmt.Fprint(w, "a new user was created...")
+	err = app.users.Insert(form.Name, form.Email, form.Password)
+	if err != nil {
+		// 判断错误类型
+		if errors.Is(err, models.ErrDuplicateEmail) {
+			// 在这里返回的已经是将原始错误包装过形成的自定义错误
+			form.AddFieldError("email", "输入的邮箱已经被使用...")
+
+			// 为用户重新渲染页面
+			data := app.newTemplateData(r)
+			data.Form = form
+			app.render(w, http.StatusUnprocessableEntity, "signup.tmpl.html", data)
+		} else {
+			app.serverError(w, err)
+		}
+		// 终止请求
+		return
+	}
+	// 创建成功了使用session创建flash信息进行提示
+	app.sessionManager.Put(r.Context(), "flash", "注册成功！请登入...")
+
+	// 对网页进行重定向
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
 // 展示用户的登录界面
