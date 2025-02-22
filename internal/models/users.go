@@ -55,7 +55,35 @@ func (m *UserModel) Insert(name, email, password string) error {
 
 // 检查是否存在该用户 如果存在就返回id
 func (m *UserModel) Authenticate(email, password string) (int, error) {
-	return 0, nil
+	// 定义变量用于从数据库中提取数据
+	var id int
+	var hashedPassword []byte
+
+	stmt := `SELECT id,hashed_password FROM users WHERE email = ?`
+	err := m.DB.QueryRow(stmt, email).Scan(&id, &hashedPassword)
+	if err != nil {
+		// 判断是否为sql查询为空的错误
+		if errors.Is(err, sql.ErrNoRows) {
+			// 如果查询结果为空值直接返回无效数据错误
+			return 0, ErrInvalidCredentials
+		} else {
+			// 其他错误统一正常返回处理
+			return 0, err
+		}
+	}
+	// 确实存在这个邮箱 检查用户填写的密码哈希值与数据库中存储的是否一致
+	err = bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
+	if err != nil {
+		// 判断是否是哈希值不匹配的错误
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			// 如果哈希值不匹配直接返回无效数据错误
+			return 0, ErrInvalidCredentials
+		} else {
+			return 0, err
+		}
+	}
+	// 登陆成功
+	return id, nil
 }
 
 // 通过提供的id检查用户是否存在

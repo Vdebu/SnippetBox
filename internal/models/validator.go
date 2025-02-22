@@ -11,13 +11,15 @@ var EmailRX = regexp.MustCompile(`^[a-zA-Z0-9.!#$%&'*+/=?^_` + "`" + `{|}~-]+@[a
 
 // 验证器:包含验证信息是否准确的方法与存储错误信息的字段
 type Validator struct {
+	// 用于存储与存储结构或字段无关的错误 这里由于没有字段所以不是map 只需加入信息
+	NonFieldErrors []string
 	// 创建用于存储错误信息的map
 	FieldErrors map[string]string
 }
 
 // 如果没有返回任何错误就返回true,用于判断是否发生错误执行处理错误的逻辑
 func (v *Validator) Valid() bool {
-	return len(v.FieldErrors) == 0
+	return len(v.FieldErrors) == 0 && len(v.NonFieldErrors) == 0
 }
 
 // 向FieldErrors添加错误信息
@@ -30,6 +32,11 @@ func (v *Validator) AddFieldError(key, message string) {
 	if _, exists := v.FieldErrors[key]; !exists {
 		v.FieldErrors[key] = message
 	}
+}
+
+// 向NonFieldError中添加错误信息
+func (v *Validator) AddNonFieldError(message string) {
+	v.NonFieldErrors = append(v.NonFieldErrors, message)
 }
 
 // 通过与其他返回bool值的函数组合用于检测是否发生错误

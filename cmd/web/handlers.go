@@ -13,7 +13,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// 使用结构体存储用户输入的消息
+// 存储用户输入的消息
 type snippetCreateForm struct {
 	// 告诉解码器去html里找name为`...`的input标签
 	Title   string `form:"title"`
@@ -24,9 +24,16 @@ type snippetCreateForm struct {
 	models.Validator `form:"-"`
 }
 
-// 使用结构体存储用户填写的个人信息
+// 存储用户填写的个人信息
 type userSignupForm struct {
 	Name             string `form:"name"`
+	Email            string `form:"email"`
+	Password         string `form:"password"`
+	models.Validator `form:"-"`
+}
+
+// 存储用户的登录信息
+type userLoginForm struct {
 	Email            string `form:"email"`
 	Password         string `form:"password"`
 	models.Validator `form:"-"`
@@ -225,12 +232,59 @@ func (app *Application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 
 // 展示用户的登录界面
 func (app *Application) userLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Display a html form for logging in a user...")
+	// 初始化参数用于网页渲染
+	data := app.newTemplateData(r)
+	data.Form = userLoginForm{}
+	app.render(w, http.StatusOK, "login.tmpl.html", data)
+	// fmt.Fprint(w, "Display a html form for logging in a user...")
 }
 
 // 将用户填写的登录信息发送到后端
 func (app *Application) userLoginPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Authenticate and login the user...")
+	// 尝试解码用户填写的数据
+	var form userLoginForm
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	// 先对输入的数据进行简单的有效性验证
+	form.CheckField(form.NotBlank(form.Email), "email", "邮箱不能为空值...")
+	form.CheckField(form.Matchs(form.Email, models.EmailRX), "email", "邮箱格式不正确...")
+	form.CheckField(form.NotBlank(form.Password), "password", "密码不能为空值...")
+	// 如果有错误返回填写的信息重新渲染网页
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, http.StatusUnprocessableEntity, "login.tmpl.html", data)
+		return
+	}
+	// 填写信息的格式都正确进行正式的有效性检测
+	id, err := app.users.Authenticate(form.Email, form.Password)
+	if err != nil {
+		// 判断错误是否是无效数据错误
+		if errors.Is(err, models.ErrInvalidCredentials) {
+			// 将错误信息添加到NonFieldErrors
+			form.AddNonFieldError("邮箱或密码错误...")
+			data := app.newTemplateData(r)
+			data.Form = form
+			app.render(w, http.StatusUnprocessableEntity, "login.tmpl.html", data)
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+	// 在登陆成功后或者权限等级发生变化后更新session ID
+	err = app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	// 验证通过将当前用户的id加入session表示已登入
+	app.sessionManager.Put(r.Context(), "authenticatedUserID", id)
+	// 重定向到创建消息页面表示当前已登录
+	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther)
+	// fmt.Fprint(w, "Authenticate and login the user...")
 }
 
 // 将用户需要退出的信息发送到后端
