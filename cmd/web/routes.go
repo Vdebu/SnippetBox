@@ -32,15 +32,21 @@ func (app *Application) routes() http.Handler {
 	// .ThenFunc()返回的还是一个handler而不是像HandlerFunc直接成为可执行的路由 所以在这里要改变原先router.HandlerFunc()为router.Handler()来注册路由
 	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))
 	router.Handler(http.MethodGet, "/snippet/view/:id", dynamic.ThenFunc(app.snippetView))
-	// render 一个用于填写信息的网页
-	router.Handler(http.MethodGet, "/snippet/create", dynamic.ThenFunc(app.snippetCreate))
-	router.Handler(http.MethodPost, "/snippet/create", dynamic.ThenFunc(app.snippetCreatePost))
 	// 用户信息处理相关的处理器
 	router.Handler(http.MethodGet, "/user/signup", dynamic.ThenFunc(app.userSignup))
 	router.Handler(http.MethodPost, "/user/signup", dynamic.ThenFunc(app.userSignupPost))
+	// 用户登入相关的处理器
 	router.Handler(http.MethodGet, "/user/login", dynamic.ThenFunc(app.userLogin))
 	router.Handler(http.MethodPost, "/user/login", dynamic.ThenFunc(app.userLoginPost))
-	router.Handler(http.MethodPost, "/user/logout", dynamic.ThenFunc(app.userLogoutPost))
+
+	// 对路由进行分组处理 上半部分的网页访问不需要用户的登入权限 在下班部分进行检测
+	protected := dynamic.Append(app.requireAuthentication)
+
+	// 创建消息相关的处理器
+	router.Handler(http.MethodGet, "/snippet/create", protected.ThenFunc(app.snippetCreate))
+	router.Handler(http.MethodPost, "/snippet/create", protected.ThenFunc(app.snippetCreatePost))
+	// 用户退出的相关处理器
+	router.Handler(http.MethodPost, "/user/logout", protected.ThenFunc(app.userLogoutPost))
 	// 使用包创建一个中间件链变量方便管理 执行顺序 ->
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 	// 使用中间件将当前mux下的所有路由都包装起来

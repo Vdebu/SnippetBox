@@ -48,3 +48,18 @@ func (app *Application) recoverPanic(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func (app *Application) requireAuthentication(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !app.isAuthenticated(r) {
+			// 如果当前用户没登录直接重定向到登录界面
+			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+			return
+		}
+		// 不将请求验证信息的记录缓存在用户的浏览器中
+		w.Header().Add("Cache-Control", "no-store")
+
+		// 调用下一个处理器
+		next.ServeHTTP(w, r)
+	})
+}
