@@ -289,5 +289,16 @@ func (app *Application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 
 // 将用户需要退出的信息发送到后端
 func (app *Application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Logout the user...")
+	// 更新会话ID
+	err := app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	// 删除当前登入的AuthenticateUserID
+	app.sessionManager.Remove(r.Context(), "authenticatedUserID")
+	// 添加一个flash消息提示用户成功退出
+	app.sessionManager.Put(r.Context(), "flash", "已成功退出...")
+	// 导航回到主页面
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
