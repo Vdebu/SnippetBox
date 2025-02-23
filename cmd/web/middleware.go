@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/justinas/nosurf"
 )
 
 // 添加保护网站安全的表头
@@ -49,6 +51,7 @@ func (app *Application) recoverPanic(next http.Handler) http.Handler {
 	})
 }
 
+// 验证用户是否已登入
 func (app *Application) requireAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !app.isAuthenticated(r) {
@@ -62,4 +65,16 @@ func (app *Application) requireAuthentication(next http.Handler) http.Handler {
 		// 调用下一个处理器
 		next.ServeHTTP(w, r)
 	})
+}
+
+// 防止CSRF攻击
+func noSurf(next http.Handler) http.Handler {
+	csrfHandler := nosurf.New(next)
+	// 设置自定义CSRF Cookie 包含(HttpOnly Path Secure三个字段)
+	csrfHandler.SetBaseCookie(http.Cookie{
+		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+	})
+	return csrfHandler
 }

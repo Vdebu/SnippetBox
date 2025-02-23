@@ -27,7 +27,8 @@ func (app *Application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fs))
 
 	// 创建包含seesion的新中间件链对需要共享信息的路由进行手动预包装
-	dynamic := alice.New(app.sessionManager.LoadAndSave)
+	// 添加防止CSRF攻击的noSurf中间件
+	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf)
 
 	// .ThenFunc()返回的还是一个handler而不是像HandlerFunc直接成为可执行的路由 所以在这里要改变原先router.HandlerFunc()为router.Handler()来注册路由
 	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))

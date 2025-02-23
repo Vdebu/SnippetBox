@@ -3,6 +3,8 @@
 {{define "main"}}
 
     <form action="/user/login" method="post" novalidate>
+        <!-- 隐藏的CSRFToken -->
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
         <!-- 遍历NonFieldErrors如果存在错误就将其展示 -->
          {{range .Form.NonFieldErrors}}
          <div class="error">{{.}}</div>

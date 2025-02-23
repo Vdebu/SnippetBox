@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-playground/form/v4"
+	"github.com/justinas/nosurf"
 )
 
 // 将函数输出错误信息的权限大部分移交给helper(app.errlog,)
@@ -94,6 +95,8 @@ func (app *Application) newTemplateData(r *http.Request) *TemplateData {
 		Flash: app.sessionManager.PopString(r.Context(), "flash"),
 		// 获取当前请求的登入信息
 		IsAuthenticated: app.isAuthenticated(r),
+		// 初始化隐藏在网页中的token
+		CSRFToken: nosurf.Token(r),
 	}
 }
 

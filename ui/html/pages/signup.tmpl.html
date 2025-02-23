@@ -3,6 +3,8 @@
 {{define "main"}}
 
 <form action="/user/signup" method="post" novalidate>
+    <!-- 隐藏的CSRFToken -->
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
     <!-- 输入用户昵称 -->
     <div>
         <label for="">昵称:</label>

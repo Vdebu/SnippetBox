@@ -21,6 +21,8 @@ type TemplateData struct {
 	Flash string
 	// 存储当前用户是否登入的信息
 	IsAuthenticated bool
+	// 实现三方包中防止CSRF攻击的逻辑
+	CSRFToken string
 }
 
 // 自定义时间格式化函数
