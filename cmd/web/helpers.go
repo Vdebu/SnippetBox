@@ -92,5 +92,12 @@ func (app *Application) newTemplateData(r *http.Request) *TemplateData {
 		CurrentYear: time.Now().Year(),
 		// 获取即时消息flash(若不存在就会返回空字符串在页面的with机制下就不会进行显示)
 		Flash: app.sessionManager.PopString(r.Context(), "flash"),
+		// 获取当前请求的登入信息
+		IsAuthenticated: app.isAuthenticated(r),
 	}
+}
+
+// 验证用户是否成功登入
+func (app *Application) isAuthenticated(r *http.Request) bool {
+	return app.sessionManager.Exists(r.Context(), "authenticatedUserID")
 }

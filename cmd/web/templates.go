@@ -19,6 +19,8 @@ type TemplateData struct {
 	// 用于存储用户输入的错误信息重新渲染页面
 	Form  any
 	Flash string
+	// 存储当前用户是否登入的信息
+	IsAuthenticated bool
 }
 
 // 自定义时间格式化函数
