@@ -88,5 +88,11 @@ func (m *UserModel) Authenticate(email, password string) (int, error) {
 
 // 通过提供的id检查用户是否存在
 func (m *UserModel) Exists(id int) (bool, error) {
-	return false, nil
+	var exists bool
+
+	// 从数据库中查找当前的id是否真实有效
+	stmt := `SELECT EXISTS(SELECT true FROM users WHERE id = ?)`
+	err := m.DB.QueryRow(stmt, id).Scan(&exists)
+	// 直接返回进行处理
+	return exists, err
 }

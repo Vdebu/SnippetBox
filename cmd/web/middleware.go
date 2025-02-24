@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -77,4 +78,32 @@ func noSurf(next http.Handler) http.Handler {
 		Path:     "/",
 	})
 	return csrfHandler
+}
+
+func (app *Application) authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 尝试从当前的session提取出用户id(大小写敏感！)
+		id := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+		// 如果找不到值会返回0
+		if id == 0 {
+			// 未登入直接调用下一个处理器
+			next.ServeHTTP(w, r)
+			return
+		}
+		// 正确返回了id 查找当前这个id是否在数据库中
+		exists, err := app.users.Exists(id)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		// 如果找到了匹配的用户
+		// 复制一份ctx加入标识符并传递给当前的r
+		if exists {
+			ctx := context.WithValue(r.Context(), isAuthenticatedContextKey, true)
+			// 更新当前r的值
+			r = r.WithContext(ctx)
+		}
+		// 调用下一个处理器
+		next.ServeHTTP(w, r)
+	})
 }

@@ -93,7 +93,7 @@ func (app *Application) newTemplateData(r *http.Request) *TemplateData {
 		CurrentYear: time.Now().Year(),
 		// 获取即时消息flash(若不存在就会返回空字符串在页面的with机制下就不会进行显示)
 		Flash: app.sessionManager.PopString(r.Context(), "flash"),
-		// 获取当前请求的登入信息
+		// 获取当前请求的登入信息 在每次初始化用于渲染网页的数据时通过验证方法获取键值
 		IsAuthenticated: app.isAuthenticated(r),
 		// 初始化隐藏在网页中的token
 		CSRFToken: nosurf.Token(r),
@@ -102,5 +102,12 @@ func (app *Application) newTemplateData(r *http.Request) *TemplateData {
 
 // 验证用户是否成功登入
 func (app *Application) isAuthenticated(r *http.Request) bool {
-	return app.sessionManager.Exists(r.Context(), "authenticatedUserID")
+	// 作为键存入值时 只有使用同样类型的键才能正确检索到这个值
+	isAuthenticated, ok := r.Context().Value(isAuthenticatedContextKey).(bool)
+
+	if !ok {
+		// 如果断言失败了直接返回
+		return false
+	}
+	return isAuthenticated
 }
