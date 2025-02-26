@@ -154,7 +154,7 @@ func (app *Application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 	form.CheckField(form.NotBlank(form.Title), "title", "标题不能为空...")
 	form.CheckField(form.MaxChars(form.Title, 100), "title", "标题长度不能超过100个字符...")
 	form.CheckField(form.NotBlank(form.Content), "content", "内容不能为空...")
-	form.CheckField(form.PermittedInt(form.Expires, 3, 7, 365), "expires", "时间必须为1,7,365...")
+	form.CheckField(models.PermittedValue(form.Expires, 3, 7, 365), "expires", "时间必须为1,7,365...")
 	// 检测是否有字段出现错误
 	if !form.Valid() {
 		// 如果有字段出现错误就以原先的输入信息重新渲染网页

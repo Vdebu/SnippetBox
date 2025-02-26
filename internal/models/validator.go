@@ -58,8 +58,9 @@ func (v *Validator) MaxChars(value string, max int) bool {
 	return utf8.RuneCountInString(value) <= max
 }
 
+// 使用泛型进行优化 泛型不能绑定在结构体上作为方法
 // 检查用户填写的值是否是合法取值
-func (v *Validator) PermittedInt(val int, permittedValues ...int) bool {
+func PermittedValue[T comparable](val T, permittedValues ...T) bool {
 	for _, v := range permittedValues {
 		if val == v {
 			return true
