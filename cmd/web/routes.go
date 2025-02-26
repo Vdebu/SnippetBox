@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"SnippetBox.mikudayo.net/ui"
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
 )
@@ -21,10 +22,16 @@ func (app *Application) routes() http.Handler {
 
 	// 调用
 	// 创建静态文件服务器
-	fs := http.FileServer(http.Dir("D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/ui/static"))
+	// fs := http.FileServer(http.Dir("D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/ui/static"))
+
+	// 使用嵌入的文件系统(embed.FS)作为FileServer
+	fs := http.FileServer(http.FS(ui.Files))
 	// 去除前缀后从文件服务器中查找文件并返回
 	// 不想让用户直接访问根目录可以检测访问路径并直接返回一个静态页面
-	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fs))
+	// router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fs))
+
+	// 不需要再去除url前缀 直接传入即可
+	router.Handler(http.MethodGet, "/static/*filepath", fs)
 
 	// 创建包含seesion的新中间件链对需要共享信息的路由进行手动预包装
 	// 添加防止CSRF攻击的noSurf中间件
@@ -39,8 +46,9 @@ func (app *Application) routes() http.Handler {
 	// 用户登入相关的处理器
 	router.Handler(http.MethodGet, "/user/login", dynamic.ThenFunc(app.userLogin))
 	router.Handler(http.MethodPost, "/user/login", dynamic.ThenFunc(app.userLoginPost))
-
-	// 对路由进行分组处理 上半部分的网页访问不需要用户的登入权限 在下班部分进行检测
+	
+	// 对路由进行分组处理 上半部分的网页访问不需要用户的登入权限 在下半部分进行检测
+	// 下面还需要合适用户的身份信息就用新的中间件 不会再次从数据库进行查询 直接从ctx中进行核实
 	protected := dynamic.Append(app.requireAuthentication)
 
 	// 创建消息相关的处理器

@@ -2,10 +2,12 @@ package main
 
 import (
 	"html/template"
+	"io/fs"
 	"path/filepath"
 	"time"
 
 	"SnippetBox.mikudayo.net/internal/models"
+	"SnippetBox.mikudayo.net/ui"
 )
 
 // 用于存储渲染网页所需要用到的数据
@@ -41,7 +43,11 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	// 初始化容器用于存储
 	cache := map[string]*template.Template{}
 	// 尝试获取指定目录下的同类型文件
-	pages, err := filepath.Glob("D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/ui/html/pages/*.html")
+	// pages, err := filepath.Glob("D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/ui/html/pages/*.html")
+
+	// 使用fs.Glob从go embed的文件中提取出来文件名匹配的文件slice
+	// 传入文件系统实例和一个 glob 模式，返回匹配的相对路径列表
+	pages, err := fs.Glob(ui.Files, "html/pages/*.html")
 	if err != nil {
 		return nil, err
 	}
@@ -50,24 +56,17 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		// 取出文件的名字用作key
 		// home.tmpl.html
 		name := filepath.Base(page)
-		// 先解析基础的模板
-		// 为了应用函数到模板里 需要使用new方法创建一个新的template.Template对象
-		// 函数的应用必须与模板解析之前
-		ts, err := template.New(name).Funcs(functions).ParseFiles("D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/ui/html/base.tmpl.html")
+		// 将需要渲染的模板打包成slice
+		patterns := []string{
+			"html/base.tmpl.html",
+			"html/partials/*.html",
+			page,
+		}
+		// 使用ParseFS()代替ParseFiles()从嵌入文件中对模板文件进行解析
+		ts, err := template.New(name).Funcs(functions).ParseFS(ui.Files, patterns...)
 		if err != nil {
 			return nil, err
 		}
-		// 调用ts.ParseGlob()解析其他的基板(nav.tmpl.html)
-		ts, err = ts.ParseGlob("D:/Program/Mycode/Now/Mygo/Project/main/SnippetBox/ui/html/partials/*.tmpl.html")
-		if err != nil {
-			return nil, err
-		}
-		// 处理完所有的基板开始渲染页面
-		ts, err = ts.ParseFiles(page)
-		if err != nil {
-			return nil, err
-		}
-		// 预编译成功将模板存入字典中
 		cache[name] = ts
 	}
 	// 返回编译好的所有内容

@@ -80,6 +80,7 @@ func noSurf(next http.Handler) http.Handler {
 	return csrfHandler
 }
 
+// 每次加载权限敏感的网页先用这个中间件验证信息有效性
 func (app *Application) authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// 尝试从当前的session提取出用户id(大小写敏感！)
