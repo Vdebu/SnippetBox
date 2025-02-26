@@ -196,7 +196,7 @@ func (app *Application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	// 解码成功检查数据的正确性
 	form.CheckField(form.NotBlank(form.Name), "name", "姓名不能为空...")
 	form.CheckField(form.NotBlank(form.Email), "email", "邮箱不能为空...")
-	form.CheckField(form.Matchs(form.Email, models.EmailRX), "email", "输入的邮箱格式错误...")
+	form.CheckField(form.Matches(form.Email, models.EmailRX), "email", "输入的邮箱格式错误...")
 	form.CheckField(form.MinChars(form.Password, 8), "password", "密码长度必须大于8...")
 	// 如果填入的字段出现错误就将字段返回给网页重新渲染
 	if !form.Valid() {
@@ -250,7 +250,7 @@ func (app *Application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	}
 	// 先对输入的数据进行简单的有效性验证
 	form.CheckField(form.NotBlank(form.Email), "email", "邮箱不能为空值...")
-	form.CheckField(form.Matchs(form.Email, models.EmailRX), "email", "邮箱格式不正确...")
+	form.CheckField(form.Matches(form.Email, models.EmailRX), "email", "邮箱格式不正确...")
 	form.CheckField(form.NotBlank(form.Password), "password", "密码不能为空值...")
 	// 如果有错误返回填写的信息重新渲染网页
 	if !form.Valid() {
