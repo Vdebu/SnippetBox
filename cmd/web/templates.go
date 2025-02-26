@@ -29,8 +29,13 @@ type TemplateData struct {
 
 // 自定义时间格式化函数
 func hunmanDate(t time.Time) string {
+	// 如果传入的时间是空值直接返回空字符串
+	if t.IsZero() {
+		return ""
+	}
 	// 时间的初始化必须根据go的参考时间 不能随意更改
-	return t.Format("2006-01-02 15:04:05")
+	// 在对时间格式化之前转换成utc时间
+	return t.UTC().Format("2006-01-02 15:04:05")
 }
 
 // 创建template.FuncMap用于存储自定义函数
