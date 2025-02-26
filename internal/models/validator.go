@@ -63,6 +63,7 @@ func (v *Validator) MaxChars(value string, max int) bool {
 func PermittedValue[T comparable](val T, permittedValues ...T) bool {
 	for _, v := range permittedValues {
 		if val == v {
+
 			return true
 		}
 	}
