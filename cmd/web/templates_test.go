@@ -1,10 +1,9 @@
 package main
 
 import (
+	"SnippetBox.mikudayo.net/internal/assert"
 	"testing"
 	"time"
-
-	"SnippetBox.mikudayo.net/internal/assert"
 )
 
 // 为模板中的函数编写测试

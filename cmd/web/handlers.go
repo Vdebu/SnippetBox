@@ -302,3 +302,8 @@ func (app *Application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 	// 导航回到主页面
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+
+func ping(w http.ResponseWriter, r *http.Request) {
+	// 向传入的响应体写入信息
+	w.Write([]byte("OK"))
+}

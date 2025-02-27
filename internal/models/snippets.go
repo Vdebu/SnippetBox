@@ -25,6 +25,7 @@ type SnippetModel struct {
 // 插入新的snippet
 func (m *SnippetModel) Insert(title string, content string, expires int) (int, error) {
 	// 使用占位符代替实际数据值
+	//goland:noinspection SqlNoDataSourceInspection
 	stmt := `INSERT INTO snippets(title,content,created,expires)
 	VALUES(?,?,UTC_TIMESTAMP(),DATE_ADD(UTC_TIMESTAMP,INTERVAL ? DAY))`
 	// 使用DB.Exec()执行SQL语句
@@ -42,6 +43,8 @@ func (m *SnippetModel) Insert(title string, content string, expires int) (int, e
 }
 
 // 输入id查询指定的snippet
+//
+//goland:noinspection SqlNoDataSourceInspection
 func (m *SnippetModel) Get(id int) (*Snippet, error) {
 	// 创建查询表达式
 	stmt := `SELECT id,title,content,created,expires FROM snippets
@@ -68,6 +71,8 @@ func (m *SnippetModel) Get(id int) (*Snippet, error) {
 }
 
 // 返回最新的十条snippet
+//
+//goland:noinspection SqlNoDataSourceInspection
 func (m *SnippetModel) Latest() ([]*Snippet, error) {
 	// 通过查询语句限制返回的内容数目
 	stmt := `SELECT id,title,content,created,expires FROM snippets
