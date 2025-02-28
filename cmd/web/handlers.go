@@ -303,6 +303,7 @@ func (app *Application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+// 用于测试的处理器
 func ping(w http.ResponseWriter, r *http.Request) {
 	// 向传入的响应体写入信息
 	w.Write([]byte("OK"))

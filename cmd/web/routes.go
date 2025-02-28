@@ -33,6 +33,9 @@ func (app *Application) routes() http.Handler {
 	// 不需要再去除url前缀 直接传入即可
 	router.Handler(http.MethodGet, "/static/*filepath", fs)
 
+	// 创建用于测试的路由
+	router.HandlerFunc(http.MethodGet, "/ping", ping)
+
 	// 创建包含seesion的新中间件链对需要共享信息的路由进行手动预包装
 	// 添加防止CSRF攻击的noSurf中间件
 	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
@@ -46,7 +49,7 @@ func (app *Application) routes() http.Handler {
 	// 用户登入相关的处理器
 	router.Handler(http.MethodGet, "/user/login", dynamic.ThenFunc(app.userLogin))
 	router.Handler(http.MethodPost, "/user/login", dynamic.ThenFunc(app.userLoginPost))
-	
+
 	// 对路由进行分组处理 上半部分的网页访问不需要用户的登入权限 在下半部分进行检测
 	// 下面还需要合适用户的身份信息就用新的中间件 不会再次从数据库进行查询 直接从ctx中进行核实
 	protected := dynamic.Append(app.requireAuthentication)
