@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
 	"testing"
 )
@@ -27,6 +28,19 @@ type testServer struct {
 func newTestServer(t *testing.T, h http.Handler) *testServer {
 	// 以传入的路由为基础建立测试服务器
 	ts := httptest.NewTLSServer(h)
+	// 初始化cookiejar用于服务器cookie的自动存储
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal()
+	}
+	// 所有的cookie会被自动存储并在子请求中使用(通过当前客户端发送的子请求)
+	ts.Client().Jar = jar
+	// 关闭服务器的自动重定向
+	ts.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		// 返回这个错误的同时最近一次的请求也会被返回,接下的请求会被终止
+		// 在遇到比如 HTTP 3xx 状态码时会调用这个自定义的CheckRedirect函数
+		return http.ErrUseLastResponse
+	}
 	return &testServer{ts}
 }
 
