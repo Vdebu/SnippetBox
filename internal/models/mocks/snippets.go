@@ -7,7 +7,7 @@ import (
 
 // 创建固定的snippet信息用于测试
 var mockSnippet = &models.Snippet{
-	ID:      1,
+	ID:      39,
 	Title:   "miku",
 	Content: "mikudayo",
 	Created: time.Now(),
@@ -26,7 +26,7 @@ func (m *SnippetModel) Insert(title string, content string, expires int) (int, e
 
 func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
 	switch id {
-	case 1:
+	case 39:
 		return mockSnippet, nil
 	default:
 		return nil, models.ErrNoRecord
