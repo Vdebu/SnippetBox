@@ -15,6 +15,13 @@ type Snippet struct {
 	Expires time.Time
 }
 
+// SnippetModelInterface 定义接口用于解决模拟依赖注入时编译报错的问题
+type SnippetModelInterface interface {
+	Insert(title string, content string, expires int) (int, error)
+	Get(id int) (*Snippet, error)
+	Latest() ([]*Snippet, error)
+}
+
 // 定义模型存储数据库链接,有点类似依赖注入,在这之后定义方法
 type SnippetModel struct {
 	DB *sql.DB

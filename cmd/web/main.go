@@ -22,10 +22,11 @@ type Application struct {
 	// 向结构体注入自定义依赖 将处理器定义为结构体的方法
 	errlog  *log.Logger
 	infolog *log.Logger
+	// 使用接口类型接收初始化传入的数据
 	// snippet模型 包含数据库连接池与增删改查方法
-	snippets *models.SnippetModel
+	snippets models.SnippetModelInterface
 	// 用户模型 包含数据库连接池与增删改查有效性验证方法
-	users         *models.UserModel
+	users         models.UserModelInterface
 	templateCache map[string]*template.Template
 	// 向主程序注入解码依赖便于将用户的输入直接解码到相应的存储结构中去
 	formDecoder *form.Decoder

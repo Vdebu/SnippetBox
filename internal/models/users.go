@@ -19,6 +19,13 @@ type User struct {
 	Created        time.Time
 }
 
+// UserModelInterface 定义接口用于解决模拟依赖注入时编译报错的问题
+type UserModelInterface interface {
+	Insert(name, email, password string) error
+	Authenticate(email, password string) (int, error)
+	Exists(id int) (bool, error)
+}
+
 // 注入数据库依赖
 type UserModel struct {
 	DB *sql.DB

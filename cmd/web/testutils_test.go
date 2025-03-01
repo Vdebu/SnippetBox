@@ -1,7 +1,12 @@
 package main
 
 import (
+	"SnippetBox.mikudayo.net/internal/models/mocks"
 	"bytes"
+	"github.com/alexedwards/scs/v2"
+	"github.com/go-playground/form/v4"
+	"time"
+
 	"io"
 	"log"
 	"net/http"
@@ -11,11 +16,28 @@ import (
 )
 
 // 生成用于测试的Application 只初始化必要的底层依赖
-func newTestApplication() *Application {
+func newTestApplication(t *testing.T) *Application {
+	// 创建所有必要的依赖
+	// 创建网页模板的缓存
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 创建解码器
+	formDecoder := form.NewDecoder()
+	// 创建session
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true
 	return &Application{
 		// app中各处的方法都用到了自定义log 不初始化会发生panic
-		errlog:  log.New(io.Discard, "", 0),
-		infolog: log.New(io.Discard, "", 0),
+		errlog:         log.New(io.Discard, "", 0),
+		infolog:        log.New(io.Discard, "", 0),
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
+		snippets:       &mocks.SnippetModel{},
+		users:          &mocks.UserModel{},
 	}
 }
 
