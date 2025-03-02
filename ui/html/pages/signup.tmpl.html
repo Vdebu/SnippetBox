@@ -2,7 +2,7 @@
 
 {{define "main"}}
 
-<form action="/user/signup" method="post" novalidate>
+<form action='/user/signup' method = 'POST' novalidate>
     <!-- 隐藏的CSRFToken -->
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
     <!-- 输入用户昵称 -->

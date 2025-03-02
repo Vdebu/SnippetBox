@@ -3,6 +3,7 @@ package main
 import (
 	"SnippetBox.mikudayo.net/internal/assert"
 	"net/http"
+	"net/url"
 	"testing"
 )
 
@@ -81,6 +82,132 @@ func TestSnippetView(t *testing.T) {
 			if tt.wantBody != "" {
 				// 只需要检查响应体中是否有特定的字符串即可
 				assert.StringContains(t, body, tt.wantBody)
+			}
+		})
+	}
+}
+
+func TestUserSignup(t *testing.T) {
+	// 创建后续用于测试的app
+	app := newTestApplication(t)
+	// 创建测试服
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
+
+	// 向指定处理器发送GET请求 并提取CSRF token尝试输出
+	_, _, body := ts.get(t, "/user/signup")
+	// 尝试提取token 若提取失败返回的会是空字符串
+	validCSRFToken := extractCSRFToken(t, body)
+
+	// 使用测试log输出提取到的csrfToken go test -v -run="TestUserSignup"
+	//t.Logf("CSRF token is: %q", csrfToken)
+
+	// 使用表驱动测试
+	const (
+		validName     = "miku"
+		validPassword = "mikudayo3939"
+		validEmail    = "miku@vocaloid.com"
+		// 在这里会对body中的字符进行严格匹配 精确到字符大小写 引号以及空格！
+		// 确认页面中的表单元素是否正确生成 从而保证用户填写数据后能够正确提交和被服务器解析
+		formTag = "<form action='/user/signup' method = 'POST' novalidate>"
+	)
+	tests := []struct {
+		name         string
+		userName     string
+		userEmail    string
+		userPassword string
+		csrfToken    string
+		wantCode     int
+		wantFormTag  string
+	}{
+		{
+			name:         "Valid submission",
+			userName:     validName,
+			userEmail:    validEmail,
+			userPassword: validPassword,
+			csrfToken:    validCSRFToken,
+			wantCode:     http.StatusSeeOther,
+		},
+		{
+			name:         "Invalid CSRF token",
+			userName:     validName,
+			userEmail:    validEmail,
+			userPassword: validPassword,
+			csrfToken:    "wrongToken",
+			wantCode:     http.StatusBadRequest,
+		},
+		{
+			name:         "Empty name",
+			userName:     "",
+			userEmail:    validEmail,
+			userPassword: validPassword,
+			csrfToken:    validCSRFToken,
+			wantCode:     http.StatusUnprocessableEntity,
+			wantFormTag:  formTag,
+		},
+		{
+			name:         "Empty email",
+			userName:     validName,
+			userEmail:    "",
+			userPassword: validPassword,
+			csrfToken:    validCSRFToken,
+			wantCode:     http.StatusUnprocessableEntity,
+			wantFormTag:  formTag,
+		},
+		{
+			name:         "Empty password",
+			userName:     validName,
+			userEmail:    validEmail,
+			userPassword: "",
+			csrfToken:    validCSRFToken,
+			wantCode:     http.StatusUnprocessableEntity,
+			wantFormTag:  formTag,
+		},
+		{
+			name:         "Invalid email",
+			userName:     validName,
+			userEmail:    "pa$$",
+			userPassword: validPassword,
+			csrfToken:    validCSRFToken,
+			wantCode:     http.StatusUnprocessableEntity,
+			wantFormTag:  formTag,
+		},
+		{
+			name:         "Short password",
+			userName:     validName,
+			userEmail:    validEmail,
+			userPassword: "pa$$",
+			csrfToken:    validCSRFToken,
+			wantCode:     http.StatusUnprocessableEntity,
+			wantFormTag:  formTag,
+		},
+		{
+			name:         "Duplicate email",
+			userName:     validName,
+			userEmail:    "teto@vocaloid.com",
+			userPassword: validPassword,
+			csrfToken:    validCSRFToken,
+			wantCode:     http.StatusUnprocessableEntity,
+			wantFormTag:  formTag,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			form := url.Values{}
+			// 初始化url表单数据
+			// 这些都是signup网页中的html标签name 以键值的形式加入模拟填写用于后续解析
+			form.Add("name", tt.userName)
+			form.Add("email", tt.userEmail)
+			form.Add("password", tt.userPassword)
+			form.Add("csrf_token", tt.csrfToken)
+
+			// 尝试发送Post请求并获取状态码与响应体
+			code, _, body := ts.postForm(t, "/user/signup", form)
+			// 判断是否如预期
+			assert.Equal(t, code, tt.wantCode)
+			// 如果有formTag就进行测试
+			if tt.wantFormTag != "" {
+				assert.StringContains(t, body, tt.wantFormTag)
 			}
 		})
 	}

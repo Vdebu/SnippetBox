@@ -5,6 +5,9 @@ import (
 	"bytes"
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
+	"html"
+	"net/url"
+	"regexp"
 	"time"
 
 	"io"
@@ -14,6 +17,18 @@ import (
 	"net/http/httptest"
 	"testing"
 )
+
+// 使用正则表达式对csrfToken进行匹配 (.+)表示重复匹配引号中的任意字符
+var csrfTokenRX = regexp.MustCompile(`<input type="hidden" name="csrf_token" value="(.+)">`)
+
+func extractCSRFToken(t *testing.T, body string) string {
+	matches := csrfTokenRX.FindStringSubmatch(body)
+	if len(matches) < 2 {
+		t.Fatal("no csrf token found in body...")
+	}
+	// 将切片进行转换并返回
+	return html.UnescapeString(string(matches[1]))
+}
 
 // 生成用于测试的Application 只初始化必要的底层依赖
 func newTestApplication(t *testing.T) *Application {
@@ -81,5 +96,26 @@ func (ts *testServer) get(t *testing.T, urlPath string) (int, http.Header, strin
 	}
 	bytes.TrimSpace(body)
 	// 返回处理完毕的结果
+	return rs.StatusCode, rs.Header, string(body)
+}
+
+// 在测试服上绑定一个post方法接收指定的url(目标路由)与要发送的目标值 返回状态码,响应头,响应体
+func (ts *testServer) postForm(t *testing.T, urlPath string, form url.Values) (int, http.Header, string) {
+	// 向指定的路由发送post请求
+	// 将传入的数据编码为application/x-www-form-urlencoded格式,并以POST请求的方式发送到指定的URL
+	// 模拟了用户在网页上填写表单后点击提交时浏览器所执行的操作
+	rs, err := ts.Client().PostForm(ts.URL+urlPath, form)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 之后定义在处理器中的FormDecoder会自动将数据进行解析并用于后续使用
+	// 使用完毕关闭响应体
+	defer rs.Body.Close()
+	body, err := io.ReadAll(rs.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bytes.TrimSpace(body)
+	// 返回响应体的信息
 	return rs.StatusCode, rs.Header, string(body)
 }
