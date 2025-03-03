@@ -124,6 +124,8 @@ func (app *Application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 
 	// 创建数据结构体用于后续写入 因为这里需要数据中的时间(只初始化了时间)所以才需要再初始化这个结构体
 	// 这也保证了代码的结构统一
+
+	//app.infolog.Println("viewing create snippet...")
 	data := app.newTemplateData(r)
 	form := snippetCreateForm{
 		// 处理错误内容返回原网页重新填充的逻辑需要用到结构体存储信息
@@ -171,7 +173,7 @@ func (app *Application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 
 	// curl -iL -X POST http://localhost:3939/snippet/create
 	// 创建成功后为当前用户的会话添加共享信息(如果key存在则会将原先的信息覆盖掉)
-	app.sessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
+	app.sessionManager.Put(r.Context(), "flash", "消息创建成功!")
 	// 创建成功后将用户重定向到最新创建的snippet
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }
@@ -289,6 +291,7 @@ func (app *Application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 
 // 将用户需要退出的信息发送到后端
 func (app *Application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
+	app.infolog.Println("renewing token...")
 	// 更新会话ID
 	err := app.sessionManager.RenewToken(r.Context())
 	if err != nil {

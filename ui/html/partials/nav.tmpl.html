@@ -10,6 +10,9 @@
     <div>
         {{if .IsAuthenticated}}
             <form action="/user/logout" method="post">
+                <!--nosurf中间件在处理POST请求时会验证请求中是否携带了正确的CSRF令牌,logout表单中没有将该令牌包含在请求-->
+                <!--在form中补充csrfToken修复BadRequest登出失败Bug-->
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                 <button>登出</button>
             </form>
         {{else}}

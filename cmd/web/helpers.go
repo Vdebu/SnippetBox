@@ -104,7 +104,6 @@ func (app *Application) newTemplateData(r *http.Request) *TemplateData {
 func (app *Application) isAuthenticated(r *http.Request) bool {
 	// 作为键存入值时 只有使用同样类型的键才能正确检索到这个值
 	isAuthenticated, ok := r.Context().Value(isAuthenticatedContextKey).(bool)
-
 	if !ok {
 		// 如果断言失败了直接返回
 		return false

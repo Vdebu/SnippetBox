@@ -52,7 +52,7 @@ func (app *Application) recoverPanic(next http.Handler) http.Handler {
 	})
 }
 
-// 验证用户是否已登入
+// 验证用户是否已登入 用于包装需要登入后才能进行操作的路由
 func (app *Application) requireAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !app.isAuthenticated(r) {
@@ -70,6 +70,7 @@ func (app *Application) requireAuthentication(next http.Handler) http.Handler {
 
 // 防止CSRF攻击
 func noSurf(next http.Handler) http.Handler {
+	//log.Println("entering nosurf csrf...")
 	csrfHandler := nosurf.New(next)
 	// 设置自定义CSRF Cookie 包含(HttpOnly Path Secure三个字段)
 	csrfHandler.SetBaseCookie(http.Cookie{
@@ -80,7 +81,7 @@ func noSurf(next http.Handler) http.Handler {
 	return csrfHandler
 }
 
-// 每次加载权限敏感的网页先用这个中间件验证信息有效性
+// 每次加载权限敏感的网页先用这个中间件验证当前用户信息的有效性
 func (app *Application) authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// 尝试从当前的session提取出用户id(大小写敏感！)
