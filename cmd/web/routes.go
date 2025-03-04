@@ -42,6 +42,8 @@ func (app *Application) routes() http.Handler {
 
 	// .ThenFunc()返回的还是一个handler而不是像HandlerFunc直接成为可执行的路由 所以在这里要改变原先router.HandlerFunc()为router.Handler()来注册路由
 	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))
+	// 处理网站的详情页面信息
+	router.Handler(http.MethodGet, "/about", dynamic.ThenFunc(app.about))
 	router.Handler(http.MethodGet, "/snippet/view/:id", dynamic.ThenFunc(app.snippetView))
 	// 用户信息处理相关的处理器
 	router.Handler(http.MethodGet, "/user/signup", dynamic.ThenFunc(app.userSignup))

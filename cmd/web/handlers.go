@@ -311,3 +311,9 @@ func ping(w http.ResponseWriter, r *http.Request) {
 	// 向传入的响应体写入信息
 	w.Write([]byte("OK"))
 }
+
+// 展示网站详情
+func (app *Application) about(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+	app.render(w, http.StatusOK, "about.tmp.html", data)
+}
