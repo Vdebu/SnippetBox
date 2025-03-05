@@ -1,6 +1,8 @@
 package mocks
 
-import "SnippetBox.mikudayo.net/internal/models"
+import (
+	"SnippetBox.mikudayo.net/internal/models"
+)
 
 type UserModel struct {
 }

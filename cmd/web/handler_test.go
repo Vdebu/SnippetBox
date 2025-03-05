@@ -3,6 +3,7 @@ package main
 import (
 	"SnippetBox.mikudayo.net/internal/assert"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"testing"
 )
@@ -209,6 +210,127 @@ func TestUserSignup(t *testing.T) {
 			if tt.wantFormTag != "" {
 				assert.StringContains(t, body, tt.wantFormTag)
 			}
+		})
+	}
+}
+
+func TestSnippetCreate(t *testing.T) {
+	// 创建用于测试的服务器与Application
+	app := newTestApplication(t)
+	ts := newTestServer(t, app.routes())
+	// 使用完毕关闭服务器
+	defer ts.Close()
+	_, _, body := ts.get(t, "/user/login")
+	csrfToken := extractCSRFToken(t, body)
+	const (
+		validEmail    = "miku@vocaloid.com"
+		validPassword = "mikudayo3939"
+		wantLocation  = "/user/login"
+		wantForm      = "<form action='/snippet/create' method='POST'>"
+	)
+	// 测试执行的顺序也很重要 因为登入成功后对cookie的改变会影响后续的测试结果
+	t.Run("Unauthentivated", func(t *testing.T) {
+		// 在未登入的状态下直接对/snippet/create发送访问请求 结果会被重定向
+		code, header, _ := ts.get(t, "/snippet/create")
+		assert.Equal(t, code, http.StatusSeeOther)
+		assert.Equal(t, header.Get("Location"), wantLocation)
+	})
+	t.Run("Authenticated", func(t *testing.T) {
+		form := url.Values{}
+		form.Add("email", validEmail)
+		form.Add("password", validPassword)
+		form.Add("csrf_token", csrfToken)
+		ts.postForm(t, "/user/login", form)
+		code, _, body := ts.get(t, "/snippet/create")
+		// 判断是否成功进入网页
+		assert.Equal(t, code, http.StatusOK)
+		assert.StringContains(t, body, wantForm)
+	})
+
+}
+
+// 神秘原因 解决了后续无效信息访问请求的问题 但是有效信息却无法正确登入了 疑似cookie过度清除
+func TestSC(t *testing.T) {
+	app := newTestApplication(t)
+	ts := newTestServer(t, app.routes())
+	// 使用完毕关闭服务器
+	defer ts.Close()
+	const (
+		validEmail    = "miku@vocaloid.com"
+		validPassword = "mikudayo3939"
+		wantLocation  = "/user/login"
+		wantForm      = "<form action='/snippet/create' method='POST'>"
+	)
+	//在这里只需要测试非登录状态与登录状态是否能成功访问创建消息的页面即可
+	//不需要进行额外的测试如判断是否是合法的登入信息 一个函数只做一件事
+	tests := []struct {
+		name         string
+		email        string
+		password     string
+		wantCode     int
+		wantLocation string
+		wantForm     string
+	}{
+		{
+			name:         "Valid user info",
+			email:        validEmail,
+			password:     validPassword,
+			wantCode:     http.StatusOK,
+			wantForm:     wantForm,
+			wantLocation: "/snippet/create",
+		},
+		{
+			name:         "Empty user email info",
+			email:        "",
+			password:     validPassword,
+			wantCode:     http.StatusSeeOther,
+			wantLocation: wantLocation,
+		},
+		{
+			name:         "Empty user password info",
+			email:        validEmail,
+			password:     "",
+			wantCode:     http.StatusSeeOther,
+			wantLocation: wantLocation,
+		},
+		{
+			name:         "Empty user password and email info",
+			email:        "",
+			password:     "",
+			wantCode:     http.StatusSeeOther,
+			wantLocation: wantLocation,
+		},
+	}
+	// 确保每个测试子案例使用独立的会话!!!
+	// 在每个子测试开始前显式清除或重置 session，以确保无效登录测试时不会受到之前成功登录的影响
+	for _, tt := range tests {
+		// 载入测试名称信息与测试用函数
+		t.Run(tt.name, func(t *testing.T) {
+			// 每一次测试显示清除原先留下的cookie
+			jar, err := cookiejar.New(nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			ts.Client().Jar = jar
+			_, _, body := ts.get(t, "/user/login")
+			csrfToken := extractCSRFToken(t, body)
+			// 先登入再向创建消息发送请求
+			form := url.Values{}
+			// 模拟用户填写登入信息
+			form.Add("email", tt.email)
+			form.Add("password", tt.password)
+			form.Add("csrf_token", csrfToken)
+			// 将填写好的信息传入postForm用于登入
+			ts.postForm(t, "/user/login", form)
+			// 登入后尝试向/snippet/create发送请求te
+			code, header, _ := ts.get(t, "/snippet/create")
+			// 判断值是否如预期
+			assert.Equal(t, code, tt.wantCode)
+			// 检查是否跳转到登录页面
+			assert.Equal(t, header.Get("Location"), tt.wantLocation)
+			//如果无效登录的情况下并没有进行 logout（因为登录处理器直接渲染登录页面），session 里的旧数据可能依然存在
+			// 采用直接清除诜cookie的方式进行处理
+			//ts.postForm(t, "/user/logout", nil)
 		})
 	}
 }

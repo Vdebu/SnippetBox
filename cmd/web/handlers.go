@@ -291,7 +291,7 @@ func (app *Application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 
 // 将用户需要退出的信息发送到后端
 func (app *Application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
-	app.infolog.Println("renewing token...")
+	//app.infolog.Println("renewing token...")
 	// 更新会话ID
 	err := app.sessionManager.RenewToken(r.Context())
 	if err != nil {

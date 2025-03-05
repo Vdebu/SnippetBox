@@ -5,7 +5,7 @@
     <!-- 同样是路径出现了问题 前缀/是绝对路径 没加变成相对路径就会变成相对于当前页面所在目录的子路径 -->
     <!-- 以网站根目录为基准POST到/snippet/create -->
     <!-- INFO 2025/02/19 11:52:11 [::1]:5894 - HTTP/1.1 POST /snippet/snitppe/create -->
-    <form action="/snippet/create" method="POST">
+    <form action='/snippet/create' method='POST'>
         <!-- 隐藏的CSRFToken -->
          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
         <div>

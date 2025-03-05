@@ -68,7 +68,7 @@ func newTestServer(t *testing.T, h http.Handler) *testServer {
 	// 初始化cookiejar用于服务器cookie的自动存储
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		t.Fatal()
+		t.Fatal(err)
 	}
 	// 所有的cookie会被自动存储并在子请求中使用(通过当前客户端发送的子请求)
 	ts.Client().Jar = jar
