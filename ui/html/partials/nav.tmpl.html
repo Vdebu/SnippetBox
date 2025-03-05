@@ -15,10 +15,11 @@
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                 <button>登出</button>
             </form>
+        <a href="/about">关于</a>
+        <a href="/account/view">账号</a>
         {{else}}
             <a href="/user/signup">注册</a>
             <a href="/user/login">登入</a>
-            <a href="/about">关于</a>
         {{end}}
     </div>
 </nav>

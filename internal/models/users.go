@@ -24,6 +24,9 @@ type UserModelInterface interface {
 	Insert(name, email, password string) error
 	Authenticate(email, password string) (int, error)
 	Exists(id int) (bool, error)
+	GetName(id int) (string, error)
+	GetEmail(id int) (string, error)
+	GetJoinedTime(id int) (string, error)
 }
 
 // 注入数据库依赖
@@ -98,8 +101,61 @@ func (m *UserModel) Exists(id int) (bool, error) {
 	var exists bool
 
 	// 从数据库中查找当前的id是否真实有效
+	// 注意这里SELECT的是True
 	stmt := `SELECT EXISTS(SELECT true FROM users WHERE id = ?)`
 	err := m.DB.QueryRow(stmt, id).Scan(&exists)
 	// 直接返回进行处理
 	return exists, err
+}
+
+// 将一个具体类型赋值给接口时，只有接口中声明的方法可以被调用。
+//在 Application 中能调用额外的方法，有两种做法：
+
+//更新接口：将需要调用的额外方法也添加到 UserModelInterface 接口中。这样所有实现该接口的类型都必须提供这些方法，从而可以直接通过接口调用。
+
+//类型断言：如果你确定 users 实际上是 *UserModel 类型，可以使用类型断言来调用额外方法
+
+// 返回用户的账号名
+func (m *UserModel) GetName(id int) (string, error) {
+	var name string
+	stmt := `SELECT name FROM users WHERE id = ?`
+	err := m.DB.QueryRow(stmt, id).Scan(&name)
+	if err != nil {
+		// 查看是不是定制的错误 -> 人性化输出
+		if errors.Is(err, ErrNoRecord) {
+			return "", ErrNoRecord
+		}
+		return "", err
+	}
+	return name, nil
+}
+
+// 返回用户账号的创建时间
+func (m *UserModel) GetJoinedTime(id int) (string, error) {
+	var joined string
+	stmt := `SELECT created FROM users WHERE id = ?`
+	err := m.DB.QueryRow(stmt, id).Scan(&joined)
+	if err != nil {
+		// 查看是不是定制的错误 -> 人性化输出
+		if errors.Is(err, ErrNoRecord) {
+			return "", ErrNoRecord
+		}
+		return "", err
+	}
+	return joined, nil
+}
+
+// 返回用户的邮箱
+func (m *UserModel) GetEmail(id int) (string, error) {
+	var email string
+	stmt := `SELECT email FROM users WHERE id = ?`
+	err := m.DB.QueryRow(stmt, id).Scan(&email)
+	if err != nil {
+		// 查看是不是定制的错误 -> 人性化输出
+		if errors.Is(err, ErrNoRecord) {
+			return "", ErrNoRecord
+		}
+		return "", err
+	}
+	return email, nil
 }

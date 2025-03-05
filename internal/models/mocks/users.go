@@ -32,3 +32,20 @@ func (m *UserModel) Exists(id int) (bool, error) {
 		return false, nil
 	}
 }
+
+// 返回用户的账号名
+func (m *UserModel) GetName(id int) (string, error) {
+	return "", nil
+}
+
+// 返回用户账号的创建时间
+func (m *UserModel) GetJoinedTime(id int) (string, error) {
+	return "", nil
+}
+
+// 返回用户的邮箱
+func (m *UserModel) GetEmail(id int) (string, error) {
+
+	return "", nil
+
+}

@@ -61,6 +61,8 @@ func (app *Application) routes() http.Handler {
 	router.Handler(http.MethodPost, "/snippet/create", protected.ThenFunc(app.snippetCreatePost))
 	// 用户退出的相关处理器
 	router.Handler(http.MethodPost, "/user/logout", protected.ThenFunc(app.userLogoutPost))
+	// 用户账号信息相关处理器
+	router.Handler(http.MethodGet, "/account/view", protected.ThenFunc(app.userAccountSetting))
 	// 使用包创建一个中间件链变量方便管理 执行顺序 ->
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 	// 使用中间件将当前mux下的所有路由都包装起来

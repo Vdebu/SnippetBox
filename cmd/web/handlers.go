@@ -39,6 +39,13 @@ type userLoginForm struct {
 	models.Validator `form:"-"`
 }
 
+// 存储用户的账号信息(这里其实不应该额外定义结构体用于存储账户信息直接重复利用先前存储插入信息的结构体就行)
+type UserAccountInfo struct {
+	Name   string
+	Email  string
+	Joined string
+}
+
 // 展示网站的主页面
 func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 	// 指定"/"的逻辑 防止预料之外的访问
@@ -315,5 +322,44 @@ func ping(w http.ResponseWriter, r *http.Request) {
 // 展示网站详情
 func (app *Application) about(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
-	app.render(w, http.StatusOK, "about.tmp.html", data)
+	app.render(w, http.StatusOK, "about.tmpl.html", data)
+}
+
+func (app *Application) userAccountSetting(w http.ResponseWriter, r *http.Request) {
+	// 像Authenticate中间件一样直接获取int类型的id
+	id := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+	app.infolog.Println("current user id:")
+	name, err := app.users.GetName(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			// 可能当前账号信息发生了变化 重定向提示用户登入
+			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		}
+		app.serverError(w, err)
+	}
+	email, err := app.users.GetEmail(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			// 可能当前账号信息发生了变化 重定向提示用户登入
+			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		}
+		app.serverError(w, err)
+	}
+	joined, err := app.users.GetJoinedTime(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			// 可能当前账号信息发生了变化 重定向提示用户登入
+			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		}
+		app.serverError(w, err)
+	}
+	UserInfo := &UserAccountInfo{
+		Name:   name,
+		Email:  email,
+		Joined: joined,
+	}
+	// 将信息传入用于后续网页渲染
+	data := app.newTemplateData(r)
+	data.User = UserInfo
+	app.render(w, http.StatusOK, "setting.tmpl.html", data)
 }

@@ -1,0 +1,23 @@
+{{define "title"}}账号信息{{end}}
+
+{{define "main"}}
+
+    <h2>账号信息</h2>
+    {{with .User}}
+    <table>
+        <tr>
+            <th>昵称</th>
+            <td>{{.Name}}</td>
+        </tr>
+        <tr>
+            <th>邮箱</th>
+            <td>{{.Email}}</td>
+        </tr>
+        <tr>
+            <th>账号创建时间</th>
+            <td>{{.Joined}}</td>
+        </tr>
+    </table>
+    {{end}}
+
+{{end}}

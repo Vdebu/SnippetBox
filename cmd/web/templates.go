@@ -25,6 +25,7 @@ type TemplateData struct {
 	IsAuthenticated bool
 	// 实现三方包中防止CSRF攻击的逻辑
 	CSRFToken string
+	User      *UserAccountInfo
 }
 
 // 自定义时间格式化函数
