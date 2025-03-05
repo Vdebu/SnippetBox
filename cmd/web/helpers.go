@@ -21,8 +21,11 @@ func (app *Application) serverError(w http.ResponseWriter, err error) {
 	// ERROR   2025/02/12 13:56:08 helpers.go:13:
 	// ->ERROR   2025/02/12 13:56:19 handlers.go:36
 	app.errlog.Output(2, trace)
-
-	// 输出内部服务器错误的信息 statusText会根据传入的代码自动生成可读的错误信息 s
+	// 根据当前是否处于debug模式决定是否输出详细的错误信息
+	if app.debugMode {
+		http.Error(w, trace, http.StatusInternalServerError)
+	}
+	// 输出内部服务器错误的信息 statusText会根据传入的代码自动生成可读的错误信息
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 

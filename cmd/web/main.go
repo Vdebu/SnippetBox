@@ -32,6 +32,7 @@ type Application struct {
 	formDecoder *form.Decoder
 	// 载入用于请求共享信息的依赖
 	sessionManager *scs.SessionManager
+	debugMode      bool
 }
 
 func main() {
@@ -40,7 +41,8 @@ func main() {
 	// 严格区分大小写
 	dsn := flag.String("dsn", "web:pass@/snippetbox?parseTime=true", "MySql data source name")
 	// -addr=:4000指定参数 -help查看当前程序所有的可用参数
-
+	// 用于开启debug模式
+	debug := flag.Bool("debug", false, "enable debug mode")
 	// 使用前解析参数
 	flag.Parse()
 
@@ -80,6 +82,7 @@ func main() {
 		templateCache:  cache,
 		formDecoder:    formDecoder,
 		sessionManager: sessionManager,
+		debugMode:      *debug,
 	}
 	// 指定启用椭圆曲线优化服务器的性能
 	// 由于在go1.20只有tls.CurveP256与tls.X25519装配使用了
