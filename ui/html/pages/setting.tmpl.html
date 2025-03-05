@@ -15,7 +15,11 @@
         </tr>
         <tr>
             <th>账号创建时间</th>
-            <td>{{.Joined}}</td>
+            <td>{{humanDate .Joined}}</td>
+        </tr>
+        <tr>
+            <th>密码</th>
+            <td><a href="/account/password/update">修改密码</a></td>
         </tr>
     </table>
     {{end}}

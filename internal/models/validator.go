@@ -28,8 +28,9 @@ func (v *Validator) AddFieldError(key, message string) {
 	if v.FieldErrors == nil {
 		v.FieldErrors = map[string]string{}
 	}
-	// 如果当前错误信息没在map中就加入
+	// 如果当前错误信息没在map中就创建
 	if _, exists := v.FieldErrors[key]; !exists {
+		// 如果存在就什么都不干
 		v.FieldErrors[key] = message
 	}
 }
@@ -77,4 +78,8 @@ func (v *Validator) MinChars(value string, min int) bool {
 // Matches 检查是否匹配字符串格式(通过正则表达式)
 func (v *Validator) Matches(value string, rx *regexp.Regexp) bool {
 	return rx.MatchString(value)
+}
+
+func Confirms[T comparable](s1, s2 T) bool {
+	return s1 != s2
 }

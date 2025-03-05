@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"SnippetBox.mikudayo.net/internal/models"
 
@@ -43,7 +44,15 @@ type userLoginForm struct {
 type UserAccountInfo struct {
 	Name   string
 	Email  string
-	Joined string
+	Joined time.Time
+}
+
+// 存储用户输入的密码信息
+type UserPasswordUpdate struct {
+	CurrentPassword  string `form:"currentPD"`
+	NewPassword      string `form:"newPD"`
+	ConfirmPassword  string `form:"confirmPD"`
+	models.Validator `form:"-"`
 }
 
 // 展示网站的主页面
@@ -370,4 +379,59 @@ func (app *Application) userAccountSetting(w http.ResponseWriter, r *http.Reques
 	data := app.newTemplateData(r)
 	data.User = UserInfo
 	app.render(w, http.StatusOK, "setting.tmpl.html", data)
+}
+
+func (app *Application) userPasswordUpdate(w http.ResponseWriter, r *http.Request) {
+	// 渲染用于修改密码的页面
+	data := app.newTemplateData(r)
+	// 传入空值用于网页的正常渲染
+	data.Form = UserPasswordUpdate{}
+	app.render(w, http.StatusOK, "updatepd.tmpl.html", data)
+}
+func (app *Application) userPasswordUpdatePost(w http.ResponseWriter, r *http.Request) {
+	var form UserPasswordUpdate
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+	}
+	// 进行简单的有效性检查
+	form.CheckField(form.NotBlank(form.CurrentPassword), "currentPD", "当前的密码不能为空值...")
+	form.CheckField(form.NotBlank(form.NewPassword), "newPD", "新密码长度必须大于8...")
+	// 比较两次输入的密码是否匹配
+	form.CheckField(models.Confirms(form.NewPassword, form.ConfirmPassword), "confirmPD", "与先前输入的密码不匹配...")
+	// 检查是否发生错误
+	if !form.Valid() {
+		// 对网页进行重新渲染
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, http.StatusUnprocessableEntity, "updatepd.tmpl.html", data)
+		// 结束当前请求
+		return
+	}
+	// 简单检查通过提取当前用户id
+	id := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+	// 检查当前输入的密码是否正确
+	err = app.users.UpdatePassword(form.CurrentPassword, form.NewPassword, id)
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidCredentials) {
+			// 账号存在 但是密码不正确s
+			form.AddFieldError("currentPD", "当前密码不正确...")
+			// 使用新的错误信息渲染网页
+			data := app.newTemplateData(r)
+			data.Form = form
+			app.render(w, http.StatusUnprocessableEntity, "updatepd.tmpl.html", data)
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+	// 密码更新成功(权限发生变化)进行重定向
+	err = app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, err)
+	}
+	// 移除当前的登入状态并重定向至登录界面
+	app.sessionManager.Remove(r.Context(), "authenticatedUserID")
+	app.sessionManager.Put(r.Context(), "flash", "密码修改成功请重新登入...")
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }

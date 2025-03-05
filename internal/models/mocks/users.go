@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"SnippetBox.mikudayo.net/internal/models"
+	"time"
 )
 
 type UserModel struct {
@@ -39,8 +40,8 @@ func (m *UserModel) GetName(id int) (string, error) {
 }
 
 // 返回用户账号的创建时间
-func (m *UserModel) GetJoinedTime(id int) (string, error) {
-	return "", nil
+func (m *UserModel) GetJoinedTime(id int) (time.Time, error) {
+	return time.Time{}, nil
 }
 
 // 返回用户的邮箱
@@ -48,4 +49,7 @@ func (m *UserModel) GetEmail(id int) (string, error) {
 
 	return "", nil
 
+}
+func (m *UserModel) UpdatePassword(currentPD, newPD string, id int) error {
+	return nil
 }

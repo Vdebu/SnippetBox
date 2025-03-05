@@ -20,7 +20,7 @@
     </header>
     {{template "nav" .}}
     <main>
-        <!-- 如果存在flash信息就将其展示 -->
+        <!-- 如果存在flash信息就将其展示 专门用于展示flash的槽-->
         {{with .Flash}}
             <div class="flash">{{.}}</div>
         {{end}}

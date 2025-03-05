@@ -1,0 +1,34 @@
+{{define "title"}}修改密码{{end}}
+
+{{define "main"}}
+
+<form action="/account/password/update" method="post">
+  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+  <div>
+    <label>当前的密码:</label>
+    {{with .Form.FieldErrors.currentPD}}
+<!--      使用flash展示错误信息-->
+      <label class="error">{{.}}</label>
+    {{end}}
+    <input type="password" name="currentPD">
+  </div>
+  <div>
+    <label>新密码:</label>
+    {{with .Form.FieldErrors.newPD}}
+    <label class="error">{{.}}</label>
+    {{end}}
+    <input type="password" name="newPD" value="{{.Form.NewPassword}}">
+  </div>
+  <div>
+    <label>确认:</label>
+    {{with .Form.FieldErrors.confirmPD}}
+    <label class="error">{{.}}</label>
+    {{end}}
+    <input type="password" name="confirmPD" value="{{.Form.ConfirmPassword}}">
+  </div>
+  <div>
+    <input type="submit" value="确认">
+  </div>
+</form>
+
+{{end}}

@@ -26,7 +26,8 @@ type UserModelInterface interface {
 	Exists(id int) (bool, error)
 	GetName(id int) (string, error)
 	GetEmail(id int) (string, error)
-	GetJoinedTime(id int) (string, error)
+	GetJoinedTime(id int) (time.Time, error)
+	UpdatePassword(currentPD, newPD string, id int) error
 }
 
 // 注入数据库依赖
@@ -131,16 +132,16 @@ func (m *UserModel) GetName(id int) (string, error) {
 }
 
 // 返回用户账号的创建时间
-func (m *UserModel) GetJoinedTime(id int) (string, error) {
-	var joined string
+func (m *UserModel) GetJoinedTime(id int) (time.Time, error) {
+	var joined time.Time
 	stmt := `SELECT created FROM users WHERE id = ?`
 	err := m.DB.QueryRow(stmt, id).Scan(&joined)
 	if err != nil {
 		// 查看是不是定制的错误 -> 人性化输出
 		if errors.Is(err, ErrNoRecord) {
-			return "", ErrNoRecord
+			return time.Time{}, ErrNoRecord
 		}
-		return "", err
+		return time.Time{}, err
 	}
 	return joined, nil
 }
@@ -158,4 +159,40 @@ func (m *UserModel) GetEmail(id int) (string, error) {
 		return "", err
 	}
 	return email, nil
+}
+
+func (m *UserModel) UpdatePassword(currentPD, newPD string, id int) error {
+	// 直接用字节切片从数据库读取password
+	var password []byte
+	// 查询当前用户的密码
+	stmt := `SELECT hashed_password FROM users WHERE id = ?`
+	err := m.DB.QueryRow(stmt, id).Scan(&password)
+	if err != nil {
+		if errors.Is(err, ErrNoRecord) {
+			return ErrNoRecord
+		}
+		return err
+	}
+	// 将输入的原密码哈希并判断是否与查询到的一致
+	err = bcrypt.CompareHashAndPassword(password, []byte(currentPD))
+	if err != nil {
+		// 是否是哈希值不匹配
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return ErrInvalidCredentials
+		}
+		return err
+	}
+	// 匹配成功
+	// 将输入的新密码进行哈希
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPD), 12)
+	if err != nil {
+		return err
+	}
+	// 更新数据库中的信息
+	stmt = `UPDATE users SET hashed_password = ? WHERE id = ?`
+	// 将哈希过的密码转换成字符串的形式存入
+	_, err = m.DB.Exec(stmt, string(hashedPassword), id)
+
+	// 最后可以不用判断直接返回err
+	return err
 }
