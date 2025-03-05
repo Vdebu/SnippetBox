@@ -55,7 +55,14 @@ func (app *Application) recoverPanic(next http.Handler) http.Handler {
 // 验证用户是否已登入 用于包装需要登入后才能进行操作的路由
 func (app *Application) requireAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 		if !app.isAuthenticated(r) {
+			// 将当前用于尝试访问的页面存储到session中
+			// 登入成功后进行重定向到想访问的页面里(login处理器)
+			//currentURL := r.Header.Get("Location")
+			currentURL := r.URL.Path
+			app.sessionManager.Put(r.Context(), "currentURL", currentURL)
+			//app.infolog.Println(currentURL)
 			// 如果当前用户没登录直接重定向到登录界面
 			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 			return

@@ -291,8 +291,16 @@ func (app *Application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	}
 	// 验证通过将当前用户的id加入session表示已登入
 	app.sessionManager.Put(r.Context(), "authenticatedUserID", id)
-	// 重定向到创建消息页面表示当前已登录
-	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther)
+	// 查看先前是否尝试访问某个页面使用PopString提取出url用于重定向
+	currentURL := app.sessionManager.PopString(r.Context(), "currentURL")
+	if currentURL != "" {
+		// 重定向到原先想访问的url而不是默认重定向到创建消息的页面
+		http.Redirect(w, r, currentURL, http.StatusSeeOther)
+	} else {
+		// 重定向到创建消息页面表示当前已登录
+		http.Redirect(w, r, "/snippet/create", http.StatusSeeOther)
+	}
+
 	// fmt.Fprint(w, "Authenticate and login the user...")
 }
 
@@ -328,7 +336,7 @@ func (app *Application) about(w http.ResponseWriter, r *http.Request) {
 func (app *Application) userAccountSetting(w http.ResponseWriter, r *http.Request) {
 	// 像Authenticate中间件一样直接获取int类型的id
 	id := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
-	app.infolog.Println("current user id:")
+	//app.infolog.Println("current user id:")
 	name, err := app.users.GetName(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
