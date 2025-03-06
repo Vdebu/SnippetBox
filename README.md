@@ -45,14 +45,20 @@ CREATE TABLE sessions (
 CREATE INDEX sessions_expiry_idx ON sessions(expiry);
 ```
 # 主页面展示
-![home](https://github.com/user-attachments/assets/82684fb7-b53f-4f13-ab74-fccf14ad2e93)
+![home](https://github.com/user-attachments/assets/6a5b80f1-0603-444d-b889-da72128fe487)
+
 # 消息发布页面展示
-![createsnippet](https://github.com/user-attachments/assets/339cce99-6402-48e6-9f51-ab295f097b3a)
+![snippet](https://github.com/user-attachments/assets/58a3d64b-e6f0-4be5-a302-9ecc7e222c84)
+
+# 账号管理页面展示
+![account](https://github.com/user-attachments/assets/eb007d3b-0ca1-4fcb-9082-4c155f7b4969)
 
 # 登入页面展示
-![login](https://github.com/user-attachments/assets/37b14493-71d1-4cbe-97a5-e8ecd0e27a86)
+![signin](https://github.com/user-attachments/assets/112d44cf-bf6e-42af-9e56-d94d3d4234f0)
 
 # 注册页面展示
-![signup](https://github.com/user-attachments/assets/d9f3e572-b612-4e1b-9de1-4f6a93385044)
+![signup](https://github.com/user-attachments/assets/94a3d416-ec64-446d-b8b8-0e7fd6583619)
 
+# 关于页面展示
+![about](https://github.com/user-attachments/assets/5305c4e3-fe04-4541-ab81-875bd5ab3329)
 
